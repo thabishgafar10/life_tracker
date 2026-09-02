@@ -86,3 +86,57 @@ class DailyNote(Base):
         DateTime(timezone=True),
         server_default=func.now()
     )
+
+
+class Settings(Base):
+    __tablename__ = "settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    name = Column(
+        String,
+        nullable=False,
+        default="Demo User"
+    )
+
+    email = Column(
+        String,
+        nullable=False,
+        default="demo@habitflow.com"
+    )
+
+    timezone = Column(
+        String,
+        nullable=False,
+        default="Asia/Kolkata"
+    )
+
+    theme = Column(
+        String,
+        nullable=False,
+        default="dark"
+    )
+
+    accent_color = Column(
+        String,
+        nullable=False,
+        default="purple"
+    )
+
+    daily_reminders = Column(
+        Boolean,
+        nullable=False,
+        default=True
+    )
+
+    reminder_time = Column(
+        String,
+        nullable=False,
+        default="08:00"
+    )
+
+    week_start_day = Column(
+        String,
+        nullable=False,
+        default="Monday"
+    )
