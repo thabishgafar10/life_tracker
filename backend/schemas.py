@@ -115,3 +115,32 @@ class CalendarDayResponse(BaseModel):
     total: int
     completed: int
     completion_rate: float
+
+# =========================
+# SETTINGS SCHEMAS
+# =========================
+
+class SettingsResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    timezone: str
+    theme: str
+    accent_color: str
+    daily_reminders: bool
+    reminder_time: str
+    week_start_day: str
+
+    class Config:
+        from_attributes = True
+
+
+class SettingsUpdate(BaseModel):
+    name: str
+    email: str
+    timezone: str
+    theme: str
+    accent_color: str
+    daily_reminders: bool
+    reminder_time: str
+    week_start_day: str

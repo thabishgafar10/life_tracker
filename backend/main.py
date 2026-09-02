@@ -628,3 +628,79 @@ def get_calendar_data(
     calendar = analytics.calculate_daily_data(logs)
 
     return calendar
+
+# =========================================================
+# SETTINGS
+# =========================================================
+
+# GET SETTINGS
+@app.get(
+    "/settings",
+    response_model=schemas.SettingsResponse
+)
+def get_settings(
+    db: Session = Depends(get_db)
+):
+    settings = (
+        db.query(models.Settings)
+        .filter(models.Settings.id == 1)
+        .first()
+    )
+
+    # Create default settings for the first run
+    if settings is None:
+        settings = models.Settings(
+            id=1,
+            name="Demo User",
+            email="demo@habitflow.com",
+            timezone="Asia/Kolkata",
+            theme="dark",
+            accent_color="purple",
+            daily_reminders=True,
+            reminder_time="08:00",
+            week_start_day="Monday"
+        )
+
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+
+    return settings
+
+
+# UPDATE SETTINGS
+@app.put(
+    "/settings",
+    response_model=schemas.SettingsResponse
+)
+def update_settings(
+    settings_data: schemas.SettingsUpdate,
+    db: Session = Depends(get_db)
+):
+    settings = (
+        db.query(models.Settings)
+        .filter(models.Settings.id == 1)
+        .first()
+    )
+
+    # Create the settings row if it doesn't exist
+    if settings is None:
+        settings = models.Settings(
+            id=1
+        )
+
+        db.add(settings)
+
+    settings.name = settings_data.name
+    settings.email = settings_data.email
+    settings.timezone = settings_data.timezone
+    settings.theme = settings_data.theme
+    settings.accent_color = settings_data.accent_color
+    settings.daily_reminders = settings_data.daily_reminders
+    settings.reminder_time = settings_data.reminder_time
+    settings.week_start_day = settings_data.week_start_day
+
+    db.commit()
+    db.refresh(settings)
+
+    return settings
