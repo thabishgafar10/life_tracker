@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
-  Bell,
-  Plus,
   Activity,
   CheckCircle2,
-  Flame,
   Trophy,
-  TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  X,
 } from "lucide-react";
 
 import {
@@ -15,817 +16,886 @@ import {
   getActivityLogs,
   getOverviewStatistics,
   getActivityStatistics,
-  getCalendarData,
   createActivityLog,
+  updateActivityLog,
+  deleteActivityLog,
 } from "../services/api";
 
-
 function Dashboard() {
+  /* =========================================
+     STATE
+  ========================================== */
+
   const [activities, setActivities] = useState([]);
   const [logs, setLogs] = useState([]);
   const [overview, setOverview] = useState(null);
-  const [calendarData, setCalendarData] = useState([]);
-
   const [activityStats, setActivityStats] = useState({});
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [updatingCell, setUpdatingCell] = useState(null);
 
-  /* ================================
-     LOAD REAL DATABASE DATA
-  ================================= */
+  const navigate = useNavigate();
+
+  /* =========================================
+     SELECTED MONTH
+  ========================================== */
+
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
+
+  /* =========================================
+     DATE HELPER
+  ========================================== */
+
+  function formatDate(date) {
+    const year = date.getFullYear();
+
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
+
+  /* =========================================
+     TODAY
+  ========================================== */
+
+  const todayString = formatDate(new Date());
+
+  function isFutureDate(dateString) {
+    return dateString > todayString;
+  }
+
+  /* =========================================
+     LOAD DASHBOARD DATA
+  ========================================== */
 
   useEffect(() => {
     loadDashboard();
   }, []);
-
 
   async function loadDashboard() {
     try {
       setLoading(true);
       setError(null);
 
-      const [
-        activitiesData,
-        logsData,
-        overviewData,
-        calendarResponse,
-      ] = await Promise.all([
-        getActivities(),
-        getActivityLogs(),
-        getOverviewStatistics(),
-        getCalendarData(),
-      ]);
+      const [activitiesData, logsData, overviewData] =
+        await Promise.all([
+          getActivities(),
+          getActivityLogs(),
+          getOverviewStatistics(),
+        ]);
 
-      setActivities(activitiesData);
-      setLogs(logsData);
-      setOverview(overviewData);
-      setCalendarData(calendarResponse);
+      const safeActivities = Array.isArray(activitiesData)
+        ? activitiesData
+        : [];
 
+      const safeLogs = Array.isArray(logsData) ? logsData : [];
 
-      /* ================================
-         LOAD STATISTICS FOR ACTIVITIES
-      ================================= */
+      setActivities(safeActivities);
+      setLogs(safeLogs);
+      setOverview(overviewData || null);
+
+      /* =====================================
+         LOAD ACTIVITY STATISTICS
+      ====================================== */
 
       const statistics = {};
 
       await Promise.all(
-        activitiesData.map(async (activity) => {
+        safeActivities.map(async (activity) => {
           try {
-            const stats = await getActivityStatistics(
-              activity.id
-            );
+            const stats = await getActivityStatistics(activity.id);
 
             statistics[activity.id] = stats;
-
           } catch (err) {
             console.error(
-              "Failed to load activity statistics:",
-              activity.id,
+              `Failed to load statistics for activity ${activity.id}`,
               err
             );
+
+            statistics[activity.id] = {
+              best_streak: 0,
+            };
           }
         })
       );
 
       setActivityStats(statistics);
-
     } catch (err) {
-      console.error(err);
+      console.error("Dashboard loading error:", err);
 
       setError(
         err.response?.data?.detail ||
-        err.message ||
-        "Failed to load dashboard."
+          err.message ||
+          "Failed to load dashboard."
       );
-
     } finally {
       setLoading(false);
     }
   }
 
+  /* =========================================
+     MONTH INFORMATION
+  ========================================== */
 
-  /* ================================
-     TODAY
-  ================================= */
+  const daysInMonth = useMemo(() => {
+    return new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth() + 1,
+      0
+    ).getDate();
+  }, [selectedDate]);
 
-  const today = new Date()
-    .toISOString()
-    .split("T")[0];
+  const monthDays = useMemo(() => {
+    return Array.from(
+      { length: daysInMonth },
+      (_, index) => index + 1
+    );
+  }, [daysInMonth]);
 
-
-  const todayLogs = logs.filter(
-    (log) => log.date === today
+  const selectedMonthLabel = selectedDate.toLocaleDateString(
+    "en-US",
+    {
+      month: "long",
+      year: "numeric",
+    }
   );
 
+  /* =========================================
+     CHECK IF CURRENT MONTH
+  ========================================== */
 
-  const completedTodayLogs = todayLogs.filter(
-    (log) => log.completed === true
-  );
+  const isCurrentMonth = useMemo(() => {
+    const today = new Date();
 
+    return (
+      selectedDate.getFullYear() === today.getFullYear() &&
+      selectedDate.getMonth() === today.getMonth()
+    );
+  }, [selectedDate]);
 
-  const completedToday =
-    completedTodayLogs.length;
+  /* =========================================
+     MONTH NAVIGATION
+  ========================================== */
 
-
-  /* ================================
-     STREAK CALCULATION
-  ================================= */
-
-  const allStats =
-    Object.values(activityStats);
-
-
-  const currentStreak =
-    allStats.length > 0
-      ? Math.max(
-          ...allStats.map(
-            (stat) =>
-              stat.current_streak || 0
-          )
+  function goToPreviousMonth() {
+    setSelectedDate(
+      (currentDate) =>
+        new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() - 1,
+          1
         )
-      : 0;
+    );
+  }
 
+  function goToNextMonth() {
+    if (isCurrentMonth) {
+      return;
+    }
 
-  const bestStreak =
-    allStats.length > 0
-      ? Math.max(
-          ...allStats.map(
-            (stat) =>
-              stat.best_streak || 0
-          )
+    setSelectedDate(
+      (currentDate) =>
+        new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() + 1,
+          1
         )
-      : 0;
+    );
+  }
 
+  /* =========================================
+     FILTER SELECTED MONTH LOGS
+  ========================================== */
 
-  /* ================================
-     COMPLETE ACTIVITY
-  ================================= */
+  const selectedMonthLogs = useMemo(() => {
+    const year = selectedDate.getFullYear();
 
-  async function handleCompleteActivity(
-    activityId
+    const month = String(
+      selectedDate.getMonth() + 1
+    ).padStart(2, "0");
+
+    const monthPrefix = `${year}-${month}`;
+
+    return logs.filter((log) =>
+      log.date?.startsWith(monthPrefix)
+    );
+  }, [logs, selectedDate]);
+
+  /* =========================================
+     CREATE LOG MAP
+  ========================================== */
+
+  const logMap = useMemo(() => {
+    const map = {};
+
+    selectedMonthLogs.forEach((log) => {
+      const key = `${log.activity_id}-${log.date}`;
+
+      map[key] = log;
+    });
+
+    return map;
+  }, [selectedMonthLogs]);
+
+  /* =========================================
+     ACTIVITY MONTH STATISTICS
+  ========================================== */
+
+  function getActivityMonthStats(activityId) {
+    const activityLogs = selectedMonthLogs.filter(
+      (log) => log.activity_id === activityId
+    );
+
+    const completed = activityLogs.filter(
+      (log) => log.completed === true
+    ).length;
+
+    const missed = activityLogs.filter(
+      (log) => log.completed === false
+    ).length;
+
+    const today = new Date();
+
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+
+    const selectedYear = selectedDate.getFullYear();
+    const selectedMonth = selectedDate.getMonth();
+
+    let availableDays;
+
+    /* Current month → days passed so far */
+    if (
+      selectedYear === currentYear &&
+      selectedMonth === currentMonth
+    ) {
+      availableDays = today.getDate();
+    } else {
+      /* Previous month → all days */
+      availableDays = daysInMonth;
+    }
+
+    const progress =
+      availableDays > 0
+        ? (completed / availableDays) * 100
+        : 0;
+
+    return {
+      completed,
+      missed,
+      totalLogged: activityLogs.length,
+      availableDays,
+      progress,
+    };
+  }
+
+  /* =========================================
+     BEST STREAK
+  ========================================== */
+
+  const bestStreak = useMemo(() => {
+    const allStats = Object.values(activityStats);
+
+    if (allStats.length === 0) {
+      return 0;
+    }
+
+    return Math.max(
+      ...allStats.map(
+        (stat) => Number(stat?.best_streak) || 0
+      )
+    );
+  }, [activityStats]);
+
+  /* =========================================
+     HANDLE CELL CLICK
+  ========================================== */
+
+  async function handleCellClick(
+    activity,
+    dateString,
+    existingLog
   ) {
+    /* Don't allow future dates */
+
+    if (isFutureDate(dateString)) {
+      return;
+    }
+
+    const cellKey = `${activity.id}-${dateString}`;
+
+    /* Prevent double clicking */
+
+    if (updatingCell === cellKey) {
+      return;
+    }
+
     try {
-      await createActivityLog({
-        activity_id: activityId,
-        date: today,
-        completed: true,
-        value: null,
-        notes: null,
-      });
+      setUpdatingCell(cellKey);
 
-      // Reload real database data
-      await loadDashboard();
+      /* =====================================
+         EMPTY → COMPLETED
+      ====================================== */
 
+      if (!existingLog) {
+        const newLog = await createActivityLog({
+          activity_id: activity.id,
+          date: dateString,
+          completed: true,
+          value: "",
+          notes: "",
+        });
+
+        setLogs((currentLogs) => [
+          ...currentLogs,
+          newLog,
+        ]);
+
+        return;
+      }
+
+      /* =====================================
+         COMPLETED → MISSED
+      ====================================== */
+
+      if (existingLog.completed === true) {
+        const updatedLog = await updateActivityLog(
+          existingLog.id,
+          {
+            activity_id: activity.id,
+            date: dateString,
+            completed: false,
+            value: existingLog.value || "",
+            notes: existingLog.notes || "",
+          }
+        );
+
+        setLogs((currentLogs) =>
+          currentLogs.map((log) =>
+            log.id === updatedLog.id
+              ? updatedLog
+              : log
+          )
+        );
+
+        return;
+      }
+
+      /* =====================================
+         MISSED → EMPTY
+      ====================================== */
+
+      await deleteActivityLog(existingLog.id);
+
+      setLogs((currentLogs) =>
+        currentLogs.filter(
+          (log) => log.id !== existingLog.id
+        )
+      );
     } catch (err) {
+      console.error(
+        "Failed to update activity log:",
+        err
+      );
+
       alert(
         err.response?.data?.detail ||
-        err.message ||
-        "Could not complete activity."
+          err.message ||
+          "Failed to update activity."
       );
+    } finally {
+      setUpdatingCell(null);
     }
   }
 
-
-  /* ================================
-     CALENDAR HELPERS
-  ================================= */
-
-  const calendarMap = {};
-
-  calendarData.forEach((day) => {
-    calendarMap[day.date] = day;
-  });
-
-
-  function getLastSevenDays() {
-    const days = [];
-
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-
-      date.setDate(
-        date.getDate() - i
-      );
-
-      const formattedDate =
-        date.toISOString().split("T")[0];
-
-      days.push({
-        date: formattedDate,
-
-        dayName:
-          date.toLocaleDateString(
-            "en-US",
-            {
-              weekday: "short",
-            }
-          ),
-
-        dayNumber:
-          date.getDate(),
-      });
-    }
-
-    return days;
-  }
-
-
-  const lastSevenDays =
-    getLastSevenDays();
-
-
-  /* ================================
+  /* =========================================
      LOADING
-  ================================= */
+  ========================================== */
 
   if (loading) {
     return (
       <div className="page-loading">
-        Loading your dashboard...
+        Loading your habit tracker...
       </div>
     );
   }
 
-
-  /* ================================
+  /* =========================================
      ERROR
-  ================================= */
+  ========================================== */
 
   if (error) {
     return (
       <div className="page-error">
+        <h2>Something went wrong</h2>
 
-        <h2>
-          Something went wrong
-        </h2>
+        <p>{error}</p>
 
-        <p>
-          {error}
-        </p>
-
-        <button
-          onClick={loadDashboard}
-        >
+        <button onClick={loadDashboard}>
           Try Again
         </button>
-
       </div>
     );
   }
 
+  /* =========================================
+     RENDER
+  ========================================== */
 
   return (
-    <div className="dashboard-page">
+    <div className="habit-dashboard">
 
-      {/* ================= HEADER ================= */}
+      {/* =====================================
+          HEADER
+      ====================================== */}
 
-      <header className="dashboard-topbar">
-
+      <header className="habit-dashboard-header">
         <div>
+          <h1>Dashboard</h1>
 
-          <p className="welcome-text">
-            WELCOME BACK
+          <p>
+            Track your progress and build consistency.
           </p>
-
-          <h1>
-            Track your progress.
-            <br />
-            Build your life.
-          </h1>
-
-          <p className="dashboard-date">
-            {new Date().toLocaleDateString(
-              "en-US",
-              {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              }
-            )}
-          </p>
-
         </div>
 
-
-        <div className="dashboard-actions">
-
-          <button
-            className="notification-button"
-            type="button"
-          >
-            <Bell size={20} />
-          </button>
-
-
-          <button
-            className="add-activity-button"
-            type="button"
-            onClick={() =>
-              document
-                .getElementById(
-                  "activities-section"
-                )
-                ?.scrollIntoView({
-                  behavior: "smooth",
-                })
-            }
-          >
-
-            <Plus size={19} />
-
-            Add Activity
-
-          </button>
-
-        </div>
-
+        <button
+          className="manage-habits-button"
+          type="button"
+          onClick={() => navigate("/activities")}
+        >
+          Manage Habits
+        </button>
       </header>
 
+      {/* =====================================
+          SUMMARY CARDS
+      ====================================== */}
 
-      {/* ================= STATISTICS ================= */}
+      <section className="habit-summary-grid">
 
-      <section className="dashboard-stats-grid">
+        {/* TOTAL HABITS */}
 
-        {/* Total Activities */}
+        <div className="habit-summary-card">
+          <div className="summary-card-top">
+            <p>Total Active Habits</p>
 
-        <div className="dashboard-stat-card">
-
-          <div className="stat-icon">
-            <Activity size={20} />
+            <Activity size={18} />
           </div>
 
-          <div>
-
-            <p>
-              Total Activities
-            </p>
-
-            <h2>
-              {overview?.total_activities ?? 0}
-            </h2>
-
-          </div>
-
+          <h2>
+            {overview?.total_activities ?? 0}
+          </h2>
         </div>
 
+        {/* GLOBAL COMPLETION */}
 
-        {/* Completed Today */}
+        <div className="habit-summary-card">
+          <div className="summary-card-top">
+            <p>Global Completion</p>
 
-        <div className="dashboard-stat-card">
-
-          <div className="stat-icon">
-            <CheckCircle2 size={20} />
+            <CheckCircle2 size={18} />
           </div>
 
-          <div>
-
-            <p>
-              Completed Today
-            </p>
-
-            <h2>
-              {completedToday}
-            </h2>
-
-          </div>
-
+          <h2>
+            {Number(
+              overview?.overall_completion_rate ?? 0
+            ).toFixed(2)}
+            %
+          </h2>
         </div>
 
+        {/* BEST STREAK */}
 
-        {/* Current Streak */}
+        <div className="habit-summary-card">
+          <div className="summary-card-top">
+            <p>Best Streak</p>
 
-        <div className="dashboard-stat-card">
-
-          <div className="stat-icon">
-            <Flame size={20} />
+            <Trophy size={18} />
           </div>
 
-          <div>
-
-            <p>
-              Current Streak
-            </p>
-
-            <h2>
-              {currentStreak} days
-            </h2>
-
-          </div>
-
-        </div>
-
-
-        {/* Best Streak */}
-
-        <div className="dashboard-stat-card">
-
-          <div className="stat-icon">
-            <Trophy size={20} />
-          </div>
-
-          <div>
-
-            <p>
-              Best Streak
-            </p>
-
-            <h2>
-              {bestStreak} days
-            </h2>
-
-          </div>
-
-        </div>
-
-
-        {/* Completion Rate */}
-
-        <div className="dashboard-stat-card">
-
-          <div className="stat-icon">
-            <TrendingUp size={20} />
-          </div>
-
-          <div>
-
-            <p>
-              Completion Rate
-            </p>
-
-            <h2>
-              {overview?.overall_completion_rate ?? 0}%
-            </h2>
-
-          </div>
-
+          <h2>
+            {bestStreak} Days
+          </h2>
         </div>
 
       </section>
 
+      {/* =====================================
+          HABIT TRACKER
+      ====================================== */}
 
-      {/* ================= MAIN DASHBOARD GRID ================= */}
+      <section className="habit-tracker-section">
 
-      <section className="dashboard-main-grid">
+        {/* TRACKER HEADER */}
 
+        <div className="habit-tracker-header">
 
-        {/* ================= TODAY ACTIVITIES ================= */}
+          <div>
+            <h2>Habit Tracker</h2>
 
-        <div
-          id="activities-section"
-          className="dashboard-content-card activities-dashboard-card"
-        >
+            <p>
+              Click a day to update your habit status.
+            </p>
+          </div>
 
-          <div className="card-header">
+          {/* MONTH NAVIGATION */}
 
-            <div>
+          <div className="month-navigation">
 
-              <p className="section-eyebrow">
-                TODAY
-              </p>
+            <button
+              type="button"
+              onClick={goToPreviousMonth}
+              aria-label="Previous month"
+            >
+              <ChevronLeft size={18} />
+            </button>
 
-              <h2>
-                Today's Activities
-              </h2>
-
-            </div>
-
-
-            <span className="activity-count">
-              {activities.length} Activities
+            <span>
+              {selectedMonthLabel}
             </span>
+
+            <button
+              type="button"
+              onClick={goToNextMonth}
+              aria-label="Next month"
+              disabled={isCurrentMonth}
+              className={
+                isCurrentMonth
+                  ? "month-button-disabled"
+                  : ""
+              }
+            >
+              <ChevronRight size={18} />
+            </button>
 
           </div>
 
+        </div>
 
-          {activities.length === 0 ? (
+        {/* TABLE */}
 
-            <div className="empty-dashboard-state">
+        <div className="habit-tracker-scroll">
 
-              <p>
-                No activities yet.
-                Create your first activity
-                to start tracking.
-              </p>
+          <table className="habit-tracker-table">
 
-            </div>
+            <thead>
 
-          ) : (
+              <tr>
 
-            <div className="today-activities-list">
+                <th className="habit-name-column">
+                  Habit
+                </th>
 
-              {activities.map(
-                (activity) => {
+                {/* DAYS */}
 
-                  const completed =
-                    todayLogs.some(
-                      (log) =>
-                        log.activity_id ===
-                          activity.id &&
-                        log.completed === true
+                {monthDays.map((day) => {
+                  const date = new Date(
+                    selectedDate.getFullYear(),
+                    selectedDate.getMonth(),
+                    day
+                  );
+
+                  const weekday =
+                    date.toLocaleDateString(
+                      "en-US",
+                      {
+                        weekday: "short",
+                      }
                     );
+
+                  const dateString = formatDate(date);
+
+                  const isToday =
+                    dateString === todayString;
+
+                  return (
+                    <th
+                      key={day}
+                      className={`day-column ${
+                        isToday
+                          ? "today-column"
+                          : ""
+                      }`}
+                    >
+                      <span>
+                        {weekday.charAt(0)}
+                      </span>
+
+                      <strong>
+                        {day}
+                      </strong>
+                    </th>
+                  );
+                })}
+
+                <th>Done</th>
+
+                <th>Missed</th>
+
+                <th>Progress</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {activities.length === 0 ? (
+
+                <tr>
+                  <td
+                    colSpan={daysInMonth + 4}
+                    className="tracker-empty-state"
+                  >
+                    No habits found.
+                  </td>
+                </tr>
+
+              ) : (
+
+                activities.map((activity) => {
+                  const stats =
+                    getActivityMonthStats(activity.id);
 
                   return (
 
-                    <div
-                      key={activity.id}
-                      className="today-activity-item"
-                    >
+                    <tr key={activity.id}>
 
-                      <div className="activity-item-left">
+                      {/* HABIT NAME */}
 
-                        <div
-                          className={`activity-status ${
-                            completed
-                              ? "completed"
-                              : ""
-                          }`}
-                        >
-                          <CheckCircle2 size={20} />
-                        </div>
+                      <td className="habit-name-cell">
 
+                        <div className="habit-info">
 
-                        <div>
+                          <span className="habit-dot" />
 
-                          <h3>
-                            {activity.name}
-                          </h3>
+                          <div>
+                            <strong>
+                              {activity.name}
+                            </strong>
 
-                          <p>
-                            {activity.category ||
-                              "Uncategorized"}
-                          </p>
+                            <small>
+                              {activity.category ||
+                                "Uncategorized"}
+                            </small>
+                          </div>
 
                         </div>
 
-                      </div>
+                      </td>
 
+                      {/* DAILY LOGS */}
 
-                      <div className="activity-item-right">
+                      {monthDays.map((day) => {
+                        const date = new Date(
+                          selectedDate.getFullYear(),
+                          selectedDate.getMonth(),
+                          day
+                        );
 
-                        {activity.goal && (
+                        const formattedDate =
+                          formatDate(date);
 
-                          <span className="activity-goal">
-                            {activity.goal}
+                        const key =
+                          `${activity.id}-${formattedDate}`;
+
+                        const log = logMap[key];
+
+                        const future =
+                          isFutureDate(formattedDate);
+
+                        const isUpdating =
+                          updatingCell === key;
+
+                        const isToday =
+                          formattedDate === todayString;
+
+                        /* EMPTY */
+
+                        if (!log) {
+                          return (
+                            <td key={formattedDate}>
+                              <button
+                                type="button"
+                                disabled={
+                                  future || isUpdating
+                                }
+                                onClick={() =>
+                                  handleCellClick(
+                                    activity,
+                                    formattedDate,
+                                    null
+                                  )
+                                }
+                                className={`tracker-cell tracker-empty
+                                  ${
+                                    future
+                                      ? "tracker-future"
+                                      : ""
+                                  }
+                                  ${
+                                    isToday
+                                      ? "tracker-today"
+                                      : ""
+                                  }
+                                `}
+                              />
+                            </td>
+                          );
+                        }
+
+                        /* COMPLETED */
+
+                        if (log.completed === true) {
+                          return (
+                            <td key={formattedDate}>
+                              <button
+                                type="button"
+                                disabled={
+                                  future || isUpdating
+                                }
+                                onClick={() =>
+                                  handleCellClick(
+                                    activity,
+                                    formattedDate,
+                                    log
+                                  )
+                                }
+                                className={`tracker-cell tracker-completed
+                                  ${
+                                    isToday
+                                      ? "tracker-today"
+                                      : ""
+                                  }
+                                `}
+                              >
+                                <Check size={13} />
+                              </button>
+                            </td>
+                          );
+                        }
+
+                        /* MISSED */
+
+                        return (
+                          <td key={formattedDate}>
+                            <button
+                              type="button"
+                              disabled={
+                                future || isUpdating
+                              }
+                              onClick={() =>
+                                handleCellClick(
+                                  activity,
+                                  formattedDate,
+                                  log
+                                )
+                              }
+                              className={`tracker-cell tracker-missed
+                                ${
+                                  isToday
+                                    ? "tracker-today"
+                                    : ""
+                                }
+                              `}
+                            >
+                              <X size={13} />
+                            </button>
+                          </td>
+                        );
+                      })}
+
+                      {/* DONE */}
+
+                      <td className="tracker-number">
+                        {stats.completed}
+                      </td>
+
+                      {/* MISSED */}
+
+                      <td className="tracker-number">
+                        {stats.missed}
+                      </td>
+
+                      {/* PROGRESS */}
+
+                      <td className="tracker-progress-cell">
+
+                        <div className="tracker-progress">
+
+                          <div className="tracker-progress-bar">
+
+                            <div
+                              style={{
+                                width: `${Math.round(
+                                  stats.progress
+                                )}%`,
+                              }}
+                            />
+
+                          </div>
+
+                          <span>
+                            {Math.round(stats.progress)}%
                           </span>
 
-                        )}
+                        </div>
 
+                      </td>
 
-                        {completed ? (
-
-                          <span className="completed-label">
-                            Completed
-                          </span>
-
-                        ) : (
-
-                          <button
-                            className="complete-button"
-                            type="button"
-                            onClick={() =>
-                              handleCompleteActivity(
-                                activity.id
-                              )
-                            }
-                          >
-                            Complete
-                          </button>
-
-                        )}
-
-                      </div>
-
-                    </div>
-
+                    </tr>
                   );
-
-                }
+                })
               )}
 
-            </div>
+            </tbody>
 
-          )}
-
-        </div>
-
-
-        {/* ================= CALENDAR ================= */}
-
-        <div className="dashboard-content-card calendar-dashboard-card">
-
-          <div className="card-header">
-
-            <div>
-
-              <p className="section-eyebrow">
-                OVERVIEW
-              </p>
-
-              <h2>
-                This Week
-              </h2>
-
-            </div>
-
-          </div>
-
-
-          <div className="mini-calendar">
-
-            {lastSevenDays.map((day) => {
-
-              const dayData =
-                calendarMap[day.date];
-
-              const completionRate =
-                dayData?.completion_rate ?? 0;
-
-
-              let statusClass =
-                "calendar-day-empty";
-
-
-              if (
-                completionRate === 100
-              ) {
-                statusClass =
-                  "calendar-day-complete";
-              } else if (
-                completionRate > 0
-              ) {
-                statusClass =
-                  "calendar-day-partial";
-              }
-
-
-              return (
-
-                <div
-                  key={day.date}
-                  className="calendar-day-wrapper"
-                >
-
-                  <span className="calendar-day-name">
-                    {day.dayName}
-                  </span>
-
-
-                  <div
-                    className={`calendar-day ${statusClass}`}
-                  >
-                    {day.dayNumber}
-                  </div>
-
-                </div>
-
-              );
-
-            })}
-
-          </div>
-
-
-          <div className="calendar-legend">
-
-            <div>
-
-              <span className="legend-dot complete-dot" />
-
-              Completed
-
-            </div>
-
-
-            <div>
-
-              <span className="legend-dot partial-dot" />
-
-              Partial
-
-            </div>
-
-
-            <div>
-
-              <span className="legend-dot empty-dot" />
-
-              No Data
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-        {/* ================= STREAK ================= */}
-
-        <div className="dashboard-content-card streak-dashboard-card">
-
-          <div className="streak-icon">
-
-            <Flame size={30} />
-
-          </div>
-
-
-          <p className="section-eyebrow">
-            CURRENT STREAK
-          </p>
-
-
-          <h2>
-            {currentStreak} Days
-          </h2>
-
-
-          <p className="streak-description">
-
-            Your best streak is{" "}
-
-            <strong>
-              {bestStreak} days
-            </strong>
-
-          </p>
-
-
-          <div className="streak-progress">
-
-            <div
-              className="streak-progress-fill"
-              style={{
-                width: `${
-                  bestStreak > 0
-                    ? Math.min(
-                        (
-                          currentStreak /
-                          bestStreak
-                        ) * 100,
-                        100
-                      )
-                    : 0
-                }%`,
-              }}
-            />
-
-          </div>
+          </table>
 
         </div>
 
       </section>
 
+      {/* =====================================
+          LEGEND
+      ====================================== */}
 
-      {/* ================= DATABASE SUMMARY ================= */}
+      <div className="tracker-legend">
 
-      <section className="dashboard-summary-grid">
-
-        <div className="summary-item">
-
-          <span>
-            Total Logs
+        <div>
+          <span className="legend-box legend-completed">
+            <Check size={12} />
           </span>
 
-          <strong>
-            {overview?.total_logs ?? 0}
-          </strong>
-
+          Completed
         </div>
 
-
-        <div className="summary-item">
-
-          <span>
-            Completed
+        <div>
+          <span className="legend-box legend-missed">
+            <X size={12} />
           </span>
 
-          <strong>
-            {overview?.completed_logs ?? 0}
-          </strong>
-
+          Missed
         </div>
 
+        <div>
+          <span className="legend-box legend-empty" />
 
-        <div className="summary-item">
-
-          <span>
-            Missed
-          </span>
-
-          <strong>
-            {overview?.missed_logs ?? 0}
-          </strong>
-
+          No Data
         </div>
 
-      </section>
+      </div>
 
     </div>
   );
 }
-
 
 export default Dashboard;

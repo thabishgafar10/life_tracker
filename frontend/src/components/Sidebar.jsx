@@ -3,7 +3,6 @@ import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   ListChecks,
-  CalendarDays,
   ChartNoAxesCombined,
   NotebookPen,
   Flame,
@@ -19,14 +18,9 @@ function Sidebar() {
       icon: LayoutDashboard,
     },
     {
-      name: "Activities",
-      path: "/activities",
+      name: "Habits",
+      path: "/habits",
       icon: ListChecks,
-    },
-    {
-      name: "Calendar",
-      path: "/calendar",
-      icon: CalendarDays,
     },
     {
       name: "Analytics",
@@ -34,7 +28,7 @@ function Sidebar() {
       icon: ChartNoAxesCombined,
     },
     {
-      name: "Daily Notes",
+      name: "Notes",
       path: "/notes",
       icon: NotebookPen,
     },
@@ -42,7 +36,6 @@ function Sidebar() {
 
   return (
     <aside className="sidebar">
-
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-icon">
@@ -55,12 +48,9 @@ function Sidebar() {
         </div>
       </div>
 
-
       {/* Navigation */}
       <nav className="sidebar-nav">
-        <p className="nav-label">
-          MENU
-        </p>
+        <p className="nav-label">MENU</p>
 
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -71,31 +61,27 @@ function Sidebar() {
               to={item.path}
               end={item.path === "/"}
               className={({ isActive }) =>
-                `sidebar-link ${
-                  isActive ? "active" : ""
-                }`
+                `sidebar-link ${isActive ? "active" : ""}`
               }
             >
               <Icon size={20} />
-
               <span>{item.name}</span>
             </NavLink>
           );
         })}
       </nav>
 
-
-      {/* Bottom navigation */}
+      {/* Bottom Navigation */}
       <div className="sidebar-bottom">
-
         <NavLink
           to="/settings"
-          className="sidebar-link"
+          className={({ isActive }) =>
+            `sidebar-link ${isActive ? "active" : ""}`
+          }
         >
           <Settings size={20} />
           <span>Settings</span>
         </NavLink>
-
 
         <button
           className="logout-button"
@@ -104,9 +90,7 @@ function Sidebar() {
           <LogOut size={20} />
           <span>Logout</span>
         </button>
-
       </div>
-
     </aside>
   );
 }
