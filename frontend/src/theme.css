@@ -1,0 +1,93 @@
+/* =========================================
+   LIFE TRACKER THEMES
+   ========================================= */
+
+.app-layout {
+  --theme-bg: #0b0f19;
+  --theme-surface: #111827;
+  --theme-surface-alt: #161d2d;
+  --theme-border: rgba(148, 163, 184, 0.16);
+  --theme-text: #f8fafc;
+  --theme-text-muted: #94a3b8;
+}
+
+/* LIGHT THEME */
+
+.app-layout[data-theme="light"] {
+  --theme-bg: #f5f7fb;
+  --theme-surface: #ffffff;
+  --theme-surface-alt: #eef2f7;
+  --theme-border: rgba(15, 23, 42, 0.12);
+  --theme-text: #172033;
+  --theme-text-muted: #64748b;
+}
+
+/* Main application background */
+
+.app-layout {
+  background: var(--theme-bg);
+  color: var(--theme-text);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Main content */
+
+.app-layout .main-content {
+  background: var(--theme-bg);
+  color: var(--theme-text);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* Sidebar */
+
+.app-layout .sidebar {
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  border-color: var(--theme-border);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* General cards */
+
+.app-layout .settings-card,
+.app-layout .activity-card,
+.app-layout .analytics-card,
+.app-layout .stat-card,
+.app-layout .note-card {
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  border-color: var(--theme-border);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* Inputs */
+
+.app-layout input,
+.app-layout select,
+.app-layout textarea {
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  border-color: var(--theme-border);
+}
+
+/* Muted text */
+
+.app-layout p {
+  color: inherit;
+}
+
+/* Buttons that rely on transparent backgrounds */
+
+.app-layout button {
+  color: inherit;
+}
