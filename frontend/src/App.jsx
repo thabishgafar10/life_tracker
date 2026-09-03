@@ -15,7 +15,6 @@ import Settings from "./pages/Settings";
 import { getSettings } from "./services/settingsApi";
 
 import "./App.css";
-import "./theme.css";
 
 function App() {
   const [theme, setTheme] = useState("dark");
@@ -36,6 +35,10 @@ function App() {
     loadSettings();
   }, []);
 
+  useEffect(() => {
+    document.body.setAttribute("data-theme", theme);
+  }, [theme]);
+
   function toggleTheme() {
     setTheme((currentTheme) =>
       currentTheme === "dark" ? "light" : "dark"
@@ -43,8 +46,13 @@ function App() {
   }
 
   function handleSettingsUpdated(updatedSettings) {
-    setTheme(updatedSettings.theme || "dark");
-    setAccentColor(updatedSettings.accent_color || "purple");
+    if (updatedSettings.theme) {
+      setTheme(updatedSettings.theme);
+    }
+
+    if (updatedSettings.accent_color) {
+      setAccentColor(updatedSettings.accent_color);
+    }
   }
 
   return (
