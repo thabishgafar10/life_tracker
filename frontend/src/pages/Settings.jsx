@@ -73,26 +73,40 @@ function Settings({ onSettingsUpdated }) {
 
         const settings = await getSettings();
 
-        setFormData({
+        const loadedSettings = {
           name: settings.name ?? "",
           email: settings.email ?? "",
           timezone: settings.timezone ?? "Asia/Kolkata",
           theme: settings.theme ?? "dark",
           accent_color: settings.accent_color ?? "purple",
-          daily_reminders: settings.daily_reminders ?? true,
-          reminder_time: settings.reminder_time ?? "08:00",
-          week_start_day: settings.week_start_day ?? "Monday",
-        });
+          daily_reminders:
+            settings.daily_reminders ?? true,
+          reminder_time:
+            settings.reminder_time ?? "08:00",
+          week_start_day:
+            settings.week_start_day ?? "Monday",
+        };
+
+        setFormData(loadedSettings);
+
+        // Apply backend settings to the whole app
+        onSettingsUpdated(loadedSettings);
       } catch (err) {
-        console.error("Failed to load settings:", err);
-        setError("Failed to load settings from the server.");
+        console.error(
+          "Failed to load settings:",
+          err
+        );
+
+        setError(
+          "Failed to load settings from the server."
+        );
       } finally {
         setLoading(false);
       }
     }
 
     loadSettings();
-  }, []);
+  }, [onSettingsUpdated]);
 
   function handleChange(event) {
     const { name, value, type, checked } = event.target;
@@ -100,41 +114,70 @@ function Settings({ onSettingsUpdated }) {
     const newValue =
       type === "checkbox" ? checked : value;
 
-    setFormData((current) => {
-      const updated = {
-        ...current,
-        [name]: newValue,
-      };
+    const updatedSettings = {
+      ...formData,
+      [name]: newValue,
+    };
 
-      if (name === "theme" || name === "accent_color") {
-        onSettingsUpdated(updated);
-      }
+    setFormData(updatedSettings);
 
-      return updated;
-    });
+    // Apply theme immediately
+    if (name === "theme") {
+      onSettingsUpdated(updatedSettings);
+    }
 
     setSaved(false);
   }
+
+  function handleAccentChange(color) {
+    const updatedSettings = {
+      ...formData,
+      accent_color: color,
+    };
+
+    setFormData(updatedSettings);
+
+    // Apply accent immediately
+    onSettingsUpdated(updatedSettings);
+
+    setSaved(false);
+  }
+
   async function handleSave() {
     try {
       setSaving(true);
       setSaved(false);
       setError("");
 
-      const updatedSettings = await updateSettings(formData);
+      const updatedSettings =
+        await updateSettings(formData);
 
-      setFormData({
+      const savedSettings = {
         name: updatedSettings.name ?? "",
         email: updatedSettings.email ?? "",
-        timezone: updatedSettings.timezone ?? "Asia/Kolkata",
-        theme: updatedSettings.theme ?? "dark",
-        accent_color: updatedSettings.accent_color ?? "purple",
-        daily_reminders: updatedSettings.daily_reminders ?? true,
-        reminder_time: updatedSettings.reminder_time ?? "08:00",
-        week_start_day: updatedSettings.week_start_day ?? "Monday",
-      });
+        timezone:
+          updatedSettings.timezone ??
+          "Asia/Kolkata",
+        theme:
+          updatedSettings.theme ?? "dark",
+        accent_color:
+          updatedSettings.accent_color ??
+          "purple",
+        daily_reminders:
+          updatedSettings.daily_reminders ??
+          true,
+        reminder_time:
+          updatedSettings.reminder_time ??
+          "08:00",
+        week_start_day:
+          updatedSettings.week_start_day ??
+          "Monday",
+      };
 
-      onSettingsUpdated(updatedSettings);
+      setFormData(savedSettings);
+
+      // Keep the whole application synchronized
+      onSettingsUpdated(savedSettings);
 
       setSaved(true);
 
@@ -142,7 +185,11 @@ function Settings({ onSettingsUpdated }) {
         setSaved(false);
       }, 2500);
     } catch (err) {
-      console.error("Failed to save settings:", err);
+      console.error(
+        "Failed to save settings:",
+        err
+      );
+
       setError(
         "Failed to save settings. Make sure the backend is running."
       );
@@ -164,10 +211,14 @@ function Settings({ onSettingsUpdated }) {
   return (
     <div className="settings-page">
 
+      {/* HEADER */}
       <div className="settings-header">
         <div>
           <h1>Settings</h1>
-          <p>Manage your preferences and account.</p>
+
+          <p>
+            Manage your preferences and account.
+          </p>
         </div>
 
         <button
@@ -183,21 +234,26 @@ function Settings({ onSettingsUpdated }) {
           ) : (
             <>
               <Save size={17} />
-              {saving ? "Saving..." : "Save Changes"}
+              {saving
+                ? "Saving..."
+                : "Save Changes"}
             </>
           )}
         </button>
       </div>
 
+      {/* ERROR */}
       {error && (
         <div className="settings-error">
           {error}
         </div>
       )}
 
+      {/* TABS */}
       <div className="settings-tabs">
 
         <button
+          type="button"
           className={
             activeTab === "profile"
               ? "settings-tab active"
@@ -209,50 +265,65 @@ function Settings({ onSettingsUpdated }) {
         </button>
 
         <button
+          type="button"
           className={
             activeTab === "preferences"
               ? "settings-tab active"
               : "settings-tab"
           }
-          onClick={() => setActiveTab("preferences")}
+          onClick={() =>
+            setActiveTab("preferences")
+          }
         >
           Preferences
         </button>
 
         <button
+          type="button"
           className={
             activeTab === "notifications"
               ? "settings-tab active"
               : "settings-tab"
           }
-          onClick={() => setActiveTab("notifications")}
+          onClick={() =>
+            setActiveTab("notifications")
+          }
         >
           Notifications
         </button>
 
         <button
+          type="button"
           className={
             activeTab === "privacy"
               ? "settings-tab active"
               : "settings-tab"
           }
-          onClick={() => setActiveTab("privacy")}
+          onClick={() =>
+            setActiveTab("privacy")
+          }
         >
           Data & Privacy
         </button>
 
       </div>
 
+      {/* PROFILE */}
       {activeTab === "profile" && (
         <div className="settings-grid">
 
+          {/* PROFILE INFORMATION */}
           <section className="settings-card">
 
             <div className="settings-card-heading">
               <div>
-                <h2>Profile Information</h2>
+                <h2>
+                  Profile Information
+                </h2>
+
                 <p>
-                  Update your personal account information.
+                  Update your personal account
+                  information.
                 </p>
               </div>
 
@@ -263,7 +334,9 @@ function Settings({ onSettingsUpdated }) {
 
               <div className="profile-avatar">
                 {formData.name
-                  ? formData.name.charAt(0).toUpperCase()
+                  ? formData.name
+                      .charAt(0)
+                      .toUpperCase()
                   : "U"}
               </div>
 
@@ -351,17 +424,23 @@ function Settings({ onSettingsUpdated }) {
             </div>
           </section>
 
+          {/* APPEARANCE */}
           <section className="settings-card">
 
             <div className="settings-card-heading">
+
               <div>
-                <h2>Appearance</h2>
+                <h2>
+                  Appearance
+                </h2>
+
                 <p>
                   Customize how Life Tracker looks.
                 </p>
               </div>
 
               <Palette size={20} />
+
             </div>
 
             <div className="settings-field">
@@ -376,8 +455,13 @@ function Settings({ onSettingsUpdated }) {
                 value={formData.theme}
                 onChange={handleChange}
               >
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
+                <option value="dark">
+                  Dark
+                </option>
+
+                <option value="light">
+                  Light
+                </option>
               </select>
 
             </div>
@@ -397,18 +481,23 @@ function Settings({ onSettingsUpdated }) {
                     title={color.label}
                     aria-label={`Use ${color.label} accent`}
                     className={
-                      formData.accent_color === color.name
+                      formData.accent_color ===
+                      color.name
                         ? "accent-color selected"
                         : "accent-color"
                     }
                     style={{
-                      "--accent-value": color.value,
+                      "--accent-value":
+                        color.value,
                     }}
                     onClick={() =>
-                      handleAccentChange(color.name)
+                      handleAccentChange(
+                        color.name
+                      )
                     }
                   >
-                    {formData.accent_color === color.name && (
+                    {formData.accent_color ===
+                      color.name && (
                       <Check size={14} />
                     )}
                   </button>
@@ -433,9 +522,17 @@ function Settings({ onSettingsUpdated }) {
                 value={formData.week_start_day}
                 onChange={handleChange}
               >
-                <option value="Monday">Monday</option>
-                <option value="Sunday">Sunday</option>
-                <option value="Saturday">Saturday</option>
+                <option value="Monday">
+                  Monday
+                </option>
+
+                <option value="Sunday">
+                  Sunday
+                </option>
+
+                <option value="Saturday">
+                  Saturday
+                </option>
               </select>
 
             </div>
@@ -445,24 +542,33 @@ function Settings({ onSettingsUpdated }) {
         </div>
       )}
 
+      {/* PREFERENCES */}
       {activeTab === "preferences" && (
         <section className="settings-card single-card">
 
           <div className="settings-card-heading">
+
             <div>
-              <h2>Preferences</h2>
+              <h2>
+                Preferences
+              </h2>
+
               <p>
-                Control your general Life Tracker preferences.
+                Control your general Life Tracker
+                preferences.
               </p>
             </div>
 
             <Palette size={20} />
+
           </div>
 
           <div className="preference-row">
 
             <div>
-              <strong>Theme</strong>
+              <strong>
+                Theme
+              </strong>
 
               <span>
                 Choose between dark and light mode.
@@ -474,8 +580,13 @@ function Settings({ onSettingsUpdated }) {
               value={formData.theme}
               onChange={handleChange}
             >
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
+              <option value="dark">
+                Dark
+              </option>
+
+              <option value="light">
+                Light
+              </option>
             </select>
 
           </div>
@@ -483,7 +594,9 @@ function Settings({ onSettingsUpdated }) {
           <div className="preference-row">
 
             <div>
-              <strong>Week Start Day</strong>
+              <strong>
+                Week Start Day
+              </strong>
 
               <span>
                 Choose which day your week begins.
@@ -495,9 +608,17 @@ function Settings({ onSettingsUpdated }) {
               value={formData.week_start_day}
               onChange={handleChange}
             >
-              <option value="Monday">Monday</option>
-              <option value="Sunday">Sunday</option>
-              <option value="Saturday">Saturday</option>
+              <option value="Monday">
+                Monday
+              </option>
+
+              <option value="Sunday">
+                Sunday
+              </option>
+
+              <option value="Saturday">
+                Saturday
+              </option>
             </select>
 
           </div>
@@ -505,28 +626,40 @@ function Settings({ onSettingsUpdated }) {
         </section>
       )}
 
+      {/* NOTIFICATIONS */}
       {activeTab === "notifications" && (
         <section className="settings-card single-card">
 
           <div className="settings-card-heading">
+
             <div>
-              <h2>Notifications</h2>
+              <h2>
+                Notifications
+              </h2>
+
               <p>
-                Configure your daily reminder preferences.
+                Configure your daily reminder
+                preferences.
               </p>
             </div>
 
             <Bell size={20} />
+
           </div>
 
           <div className="notification-setting">
 
             <div>
-              <strong>Daily Reminders</strong>
+
+              <strong>
+                Daily Reminders
+              </strong>
 
               <span>
-                Enable or disable your daily habit reminders.
+                Enable or disable your daily habit
+                reminders.
               </span>
+
             </div>
 
             <label className="switch">
@@ -534,7 +667,9 @@ function Settings({ onSettingsUpdated }) {
               <input
                 type="checkbox"
                 name="daily_reminders"
-                checked={formData.daily_reminders}
+                checked={
+                  formData.daily_reminders
+                }
                 onChange={handleChange}
               />
 
@@ -556,26 +691,32 @@ function Settings({ onSettingsUpdated }) {
               type="time"
               value={formData.reminder_time}
               onChange={handleChange}
-              disabled={!formData.daily_reminders}
+              disabled={
+                !formData.daily_reminders
+              }
             />
 
           </div>
 
           <div className="notification-note">
-            Reminder delivery will be implemented after the
-            frontend is completed.
+            Reminder delivery will be implemented
+            after the frontend is completed.
           </div>
 
         </section>
       )}
 
+      {/* PRIVACY */}
       {activeTab === "privacy" && (
         <section className="settings-card single-card">
 
           <div className="settings-card-heading">
 
             <div>
-              <h2>Data & Privacy</h2>
+              <h2>
+                Data & Privacy
+              </h2>
+
               <p>
                 Manage your Life Tracker data.
               </p>
@@ -585,17 +726,19 @@ function Settings({ onSettingsUpdated }) {
 
           <div className="privacy-info">
 
-            <h3>Your data</h3>
+            <h3>
+              Your data
+            </h3>
 
             <p>
-              Your activities, activity logs, daily notes,
-              and settings are stored by the Life Tracker
-              backend.
+              Your activities, activity logs,
+              daily notes, and settings are stored
+              by the Life Tracker backend.
             </p>
 
             <p>
-              More data export and deletion controls can
-              be added here later.
+              More data export and deletion controls
+              can be added here later.
             </p>
 
           </div>

@@ -432,3 +432,100 @@
     align-items: flex-start;
   }
 }
+/* =========================================
+   THEME OVERRIDES
+   ========================================= */
+
+/* DARK */
+
+body[data-theme="dark"] {
+  background: #0b0f19;
+  color: #f8fafc;
+}
+
+.app-layout[data-theme="dark"] {
+  background: #0b0f19;
+  color: #f8fafc;
+}
+
+.app-layout[data-theme="dark"] .main-content {
+  background: #0b0f19;
+  color: #f8fafc;
+}
+
+.app-layout[data-theme="dark"] .sidebar {
+  background: #111827;
+  color: #f8fafc;
+}
+
+/* LIGHT */
+
+body[data-theme="light"] {
+  background: #f5f7fb;
+  color: #172033;
+}
+
+.app-layout[data-theme="light"] {
+  background: #f5f7fb;
+  color: #172033;
+}
+
+.app-layout[data-theme="light"] .main-content {
+  background: #f5f7fb;
+  color: #172033;
+}
+
+.app-layout[data-theme="light"] .sidebar {
+  background: #ffffff;
+  color: #172033;
+  border-color: rgba(15, 23, 42, 0.10);
+}
+
+/* SETTINGS CARDS */
+
+.app-layout[data-theme="light"] .settings-card {
+  background: #ffffff;
+  color: #172033;
+  border-color: rgba(15, 23, 42, 0.10);
+}
+
+/* SETTINGS INPUTS */
+
+.app-layout[data-theme="light"] input,
+.app-layout[data-theme="light"] select,
+.app-layout[data-theme="light"] textarea {
+  background: #ffffff;
+  color: #172033;
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+/* LIGHT MODE TAB BORDER */
+
+.app-layout[data-theme="light"] .settings-tabs {
+  border-color: rgba(15, 23, 42, 0.10);
+}
+
+/* LIGHT MODE DIVIDERS */
+
+.app-layout[data-theme="light"] .settings-divider {
+  background: rgba(15, 23, 42, 0.10);
+}
+
+/* LIGHT MODE MUTED AREAS */
+
+.app-layout[data-theme="light"] .notification-note {
+  background: #eef2f7;
+}
+
+/* SMOOTH SWITCH */
+
+body,
+.app-layout,
+.main-content,
+.sidebar,
+.settings-card {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
