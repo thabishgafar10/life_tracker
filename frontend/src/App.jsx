@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -16,6 +16,14 @@ import { getSettings } from "./services/settingsApi";
 
 import "./App.css";
 
+const accentValues = {
+  purple: "#8b5cf6",
+  blue: "#3b82f6",
+  green: "#22c55e",
+  yellow: "#eab308",
+  pink: "#ec4899",
+};
+
 function App() {
   const [theme, setTheme] = useState("dark");
   const [accentColor, setAccentColor] = useState("purple");
@@ -25,8 +33,13 @@ function App() {
       try {
         const settings = await getSettings();
 
-        setTheme(settings.theme || "dark");
-        setAccentColor(settings.accent_color || "purple");
+        if (settings.theme) {
+          setTheme(settings.theme);
+        }
+
+        if (settings.accent_color) {
+          setAccentColor(settings.accent_color);
+        }
       } catch (error) {
         console.error("Failed to load settings:", error);
       }
@@ -35,17 +48,7 @@ function App() {
     loadSettings();
   }, []);
 
-  useEffect(() => {
-    document.body.setAttribute("data-theme", theme);
-  }, [theme]);
-
-  function toggleTheme() {
-    setTheme((currentTheme) =>
-      currentTheme === "dark" ? "light" : "dark"
-    );
-  }
-
-  function handleSettingsUpdated(updatedSettings) {
+  const handleSettingsUpdated = useCallback((updatedSettings) => {
     if (updatedSettings.theme) {
       setTheme(updatedSettings.theme);
     }
@@ -53,6 +56,12 @@ function App() {
     if (updatedSettings.accent_color) {
       setAccentColor(updatedSettings.accent_color);
     }
+  }, []);
+
+  function toggleTheme() {
+    setTheme((currentTheme) =>
+      currentTheme === "dark" ? "light" : "dark"
+    );
   }
 
   return (
@@ -61,6 +70,10 @@ function App() {
         className="app-layout"
         data-theme={theme}
         data-accent={accentColor}
+        style={{
+          "--accent-color":
+            accentValues[accentColor] || accentValues.purple,
+        }}
       >
         <Sidebar />
 
