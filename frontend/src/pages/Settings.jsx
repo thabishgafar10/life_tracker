@@ -11,10 +11,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 
-import {
-  getSettings,
-  updateSettings,
-} from "../services/settingsApi";
+import { updateSettings } from "../services/settingsApi";
 
 import "./Settings.css";
 
@@ -46,7 +43,11 @@ const accentColors = [
   },
 ];
 
-function Settings({ onSettingsUpdated }) {
+function Settings({
+  settings,
+  settingsLoaded,
+  onSettingsUpdated,
+}) {
   const [activeTab, setActiveTab] = useState("profile");
 
   const [formData, setFormData] = useState({
@@ -60,59 +61,49 @@ function Settings({ onSettingsUpdated }) {
     week_start_day: "Monday",
   });
 
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
+  /*
+    Keep the form synchronized with the settings
+    received from App.jsx.
+  */
   useEffect(() => {
-    async function loadSettings() {
-      try {
-        setLoading(true);
-        setError("");
-
-        const settings = await getSettings();
-
-        const loadedSettings = {
-          name: settings.name ?? "",
-          email: settings.email ?? "",
-          timezone: settings.timezone ?? "Asia/Kolkata",
-          theme: settings.theme ?? "dark",
-          accent_color: settings.accent_color ?? "purple",
-          daily_reminders:
-            settings.daily_reminders ?? true,
-          reminder_time:
-            settings.reminder_time ?? "08:00",
-          week_start_day:
-            settings.week_start_day ?? "Monday",
-        };
-
-        setFormData(loadedSettings);
-
-        // Apply backend settings to the whole app
-        onSettingsUpdated(loadedSettings);
-      } catch (err) {
-        console.error(
-          "Failed to load settings:",
-          err
-        );
-
-        setError(
-          "Failed to load settings from the server."
-        );
-      } finally {
-        setLoading(false);
-      }
+    if (!settingsLoaded) {
+      return;
     }
 
-    loadSettings();
-  }, [onSettingsUpdated]);
+    setFormData({
+      name: settings?.name ?? "",
+      email: settings?.email ?? "",
+      timezone:
+        settings?.timezone ?? "Asia/Kolkata",
+      theme:
+        settings?.theme ?? "dark",
+      accent_color:
+        settings?.accent_color ?? "purple",
+      daily_reminders:
+        settings?.daily_reminders ?? true,
+      reminder_time:
+        settings?.reminder_time ?? "08:00",
+      week_start_day:
+        settings?.week_start_day ?? "Monday",
+    });
+  }, [settings, settingsLoaded]);
 
   function handleChange(event) {
-    const { name, value, type, checked } = event.target;
+    const {
+      name,
+      value,
+      type,
+      checked,
+    } = event.target;
 
     const newValue =
-      type === "checkbox" ? checked : value;
+      type === "checkbox"
+        ? checked
+        : value;
 
     const updatedSettings = {
       ...formData,
@@ -121,12 +112,15 @@ function Settings({ onSettingsUpdated }) {
 
     setFormData(updatedSettings);
 
-    // Apply theme immediately
+    /*
+      Theme should change immediately.
+    */
     if (name === "theme") {
       onSettingsUpdated(updatedSettings);
     }
 
     setSaved(false);
+    setError("");
   }
 
   function handleAccentChange(color) {
@@ -137,10 +131,13 @@ function Settings({ onSettingsUpdated }) {
 
     setFormData(updatedSettings);
 
-    // Apply accent immediately
+    /*
+      Accent color should change immediately.
+    */
     onSettingsUpdated(updatedSettings);
 
     setSaved(false);
+    setError("");
   }
 
   async function handleSave() {
@@ -154,12 +151,14 @@ function Settings({ onSettingsUpdated }) {
 
       const savedSettings = {
         name: updatedSettings.name ?? "",
-        email: updatedSettings.email ?? "",
+        email:
+          updatedSettings.email ?? "",
         timezone:
           updatedSettings.timezone ??
           "Asia/Kolkata",
         theme:
-          updatedSettings.theme ?? "dark",
+          updatedSettings.theme ??
+          "dark",
         accent_color:
           updatedSettings.accent_color ??
           "purple",
@@ -176,7 +175,10 @@ function Settings({ onSettingsUpdated }) {
 
       setFormData(savedSettings);
 
-      // Keep the whole application synchronized
+      /*
+        Update App.jsx with the values that
+        were successfully saved to FastAPI.
+      */
       onSettingsUpdated(savedSettings);
 
       setSaved(true);
@@ -198,7 +200,7 @@ function Settings({ onSettingsUpdated }) {
     }
   }
 
-  if (loading) {
+  if (!settingsLoaded) {
     return (
       <div className="settings-page">
         <div className="settings-loading">
@@ -211,8 +213,12 @@ function Settings({ onSettingsUpdated }) {
   return (
     <div className="settings-page">
 
-      {/* HEADER */}
+      {/* =====================================
+          HEADER
+      ===================================== */}
+
       <div className="settings-header">
+
         <div>
           <h1>Settings</h1>
 
@@ -234,22 +240,32 @@ function Settings({ onSettingsUpdated }) {
           ) : (
             <>
               <Save size={17} />
+
               {saving
                 ? "Saving..."
                 : "Save Changes"}
             </>
           )}
         </button>
+
       </div>
 
-      {/* ERROR */}
+
+      {/* =====================================
+          ERROR
+      ===================================== */}
+
       {error && (
         <div className="settings-error">
           {error}
         </div>
       )}
 
-      {/* TABS */}
+
+      {/* =====================================
+          TABS
+      ===================================== */}
+
       <div className="settings-tabs">
 
         <button
@@ -259,10 +275,13 @@ function Settings({ onSettingsUpdated }) {
               ? "settings-tab active"
               : "settings-tab"
           }
-          onClick={() => setActiveTab("profile")}
+          onClick={() =>
+            setActiveTab("profile")
+          }
         >
           Profile
         </button>
+
 
         <button
           type="button"
@@ -278,6 +297,7 @@ function Settings({ onSettingsUpdated }) {
           Preferences
         </button>
 
+
         <button
           type="button"
           className={
@@ -291,6 +311,7 @@ function Settings({ onSettingsUpdated }) {
         >
           Notifications
         </button>
+
 
         <button
           type="button"
@@ -308,14 +329,20 @@ function Settings({ onSettingsUpdated }) {
 
       </div>
 
-      {/* PROFILE */}
+
+      {/* =====================================
+          PROFILE
+      ===================================== */}
+
       {activeTab === "profile" && (
         <div className="settings-grid">
 
           {/* PROFILE INFORMATION */}
+
           <section className="settings-card">
 
             <div className="settings-card-heading">
+
               <div>
                 <h2>
                   Profile Information
@@ -328,7 +355,11 @@ function Settings({ onSettingsUpdated }) {
               </div>
 
               <User size={20} />
+
             </div>
+
+
+            {/* PROFILE PHOTO */}
 
             <div className="profile-photo-section">
 
@@ -350,9 +381,15 @@ function Settings({ onSettingsUpdated }) {
 
             </div>
 
+
+            {/* FORM */}
+
             <div className="settings-form-grid">
 
+              {/* NAME */}
+
               <div className="settings-field">
+
                 <label htmlFor="name">
                   <User size={15} />
                   Name
@@ -361,13 +398,19 @@ function Settings({ onSettingsUpdated }) {
                 <input
                   id="name"
                   name="name"
+                  type="text"
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Enter your name"
                 />
+
               </div>
 
+
+              {/* EMAIL */}
+
               <div className="settings-field">
+
                 <label htmlFor="email">
                   <Mail size={15} />
                   Email
@@ -381,9 +424,14 @@ function Settings({ onSettingsUpdated }) {
                   onChange={handleChange}
                   placeholder="Enter your email"
                 />
+
               </div>
 
+
+              {/* TIMEZONE */}
+
               <div className="settings-field full-width">
+
                 <label htmlFor="timezone">
                   <Globe size={15} />
                   Timezone
@@ -395,6 +443,7 @@ function Settings({ onSettingsUpdated }) {
                   value={formData.timezone}
                   onChange={handleChange}
                 >
+
                   <option value="Asia/Kolkata">
                     (GMT+05:30) Asia/Kolkata
                   </option>
@@ -418,18 +467,26 @@ function Settings({ onSettingsUpdated }) {
                   <option value="America/Los_Angeles">
                     (GMT-08:00) America/Los_Angeles
                   </option>
+
                 </select>
+
               </div>
 
             </div>
+
           </section>
 
-          {/* APPEARANCE */}
+
+          {/* =====================================
+              APPEARANCE
+          ===================================== */}
+
           <section className="settings-card">
 
             <div className="settings-card-heading">
 
               <div>
+
                 <h2>
                   Appearance
                 </h2>
@@ -437,11 +494,15 @@ function Settings({ onSettingsUpdated }) {
                 <p>
                   Customize how Life Tracker looks.
                 </p>
+
               </div>
 
               <Palette size={20} />
 
             </div>
+
+
+            {/* THEME */}
 
             <div className="settings-field">
 
@@ -455,6 +516,7 @@ function Settings({ onSettingsUpdated }) {
                 value={formData.theme}
                 onChange={handleChange}
               >
+
                 <option value="dark">
                   Dark
                 </option>
@@ -462,9 +524,13 @@ function Settings({ onSettingsUpdated }) {
                 <option value="light">
                   Light
                 </option>
+
               </select>
 
             </div>
+
+
+            {/* ACCENT COLORS */}
 
             <div className="accent-section">
 
@@ -475,6 +541,7 @@ function Settings({ onSettingsUpdated }) {
               <div className="accent-options">
 
                 {accentColors.map((color) => (
+
                   <button
                     key={color.name}
                     type="button"
@@ -496,18 +563,25 @@ function Settings({ onSettingsUpdated }) {
                       )
                     }
                   >
+
                     {formData.accent_color ===
                       color.name && (
                       <Check size={14} />
                     )}
+
                   </button>
+
                 ))}
 
               </div>
 
             </div>
 
+
             <div className="settings-divider" />
+
+
+            {/* WEEK START */}
 
             <div className="settings-field">
 
@@ -522,6 +596,7 @@ function Settings({ onSettingsUpdated }) {
                 value={formData.week_start_day}
                 onChange={handleChange}
               >
+
                 <option value="Monday">
                   Monday
                 </option>
@@ -533,6 +608,7 @@ function Settings({ onSettingsUpdated }) {
                 <option value="Saturday">
                   Saturday
                 </option>
+
               </select>
 
             </div>
@@ -542,13 +618,18 @@ function Settings({ onSettingsUpdated }) {
         </div>
       )}
 
-      {/* PREFERENCES */}
+
+      {/* =====================================
+          PREFERENCES
+      ===================================== */}
+
       {activeTab === "preferences" && (
         <section className="settings-card single-card">
 
           <div className="settings-card-heading">
 
             <div>
+
               <h2>
                 Preferences
               </h2>
@@ -557,15 +638,20 @@ function Settings({ onSettingsUpdated }) {
                 Control your general Life Tracker
                 preferences.
               </p>
+
             </div>
 
             <Palette size={20} />
 
           </div>
 
+
+          {/* THEME */}
+
           <div className="preference-row">
 
             <div>
+
               <strong>
                 Theme
               </strong>
@@ -573,6 +659,7 @@ function Settings({ onSettingsUpdated }) {
               <span>
                 Choose between dark and light mode.
               </span>
+
             </div>
 
             <select
@@ -580,6 +667,7 @@ function Settings({ onSettingsUpdated }) {
               value={formData.theme}
               onChange={handleChange}
             >
+
               <option value="dark">
                 Dark
               </option>
@@ -587,13 +675,18 @@ function Settings({ onSettingsUpdated }) {
               <option value="light">
                 Light
               </option>
+
             </select>
 
           </div>
 
+
+          {/* WEEK START */}
+
           <div className="preference-row">
 
             <div>
+
               <strong>
                 Week Start Day
               </strong>
@@ -601,6 +694,7 @@ function Settings({ onSettingsUpdated }) {
               <span>
                 Choose which day your week begins.
               </span>
+
             </div>
 
             <select
@@ -608,6 +702,7 @@ function Settings({ onSettingsUpdated }) {
               value={formData.week_start_day}
               onChange={handleChange}
             >
+
               <option value="Monday">
                 Monday
               </option>
@@ -619,6 +714,7 @@ function Settings({ onSettingsUpdated }) {
               <option value="Saturday">
                 Saturday
               </option>
+
             </select>
 
           </div>
@@ -626,13 +722,18 @@ function Settings({ onSettingsUpdated }) {
         </section>
       )}
 
-      {/* NOTIFICATIONS */}
+
+      {/* =====================================
+          NOTIFICATIONS
+      ===================================== */}
+
       {activeTab === "notifications" && (
         <section className="settings-card single-card">
 
           <div className="settings-card-heading">
 
             <div>
+
               <h2>
                 Notifications
               </h2>
@@ -641,11 +742,15 @@ function Settings({ onSettingsUpdated }) {
                 Configure your daily reminder
                 preferences.
               </p>
+
             </div>
 
             <Bell size={20} />
 
           </div>
+
+
+          {/* DAILY REMINDERS */}
 
           <div className="notification-setting">
 
@@ -661,6 +766,7 @@ function Settings({ onSettingsUpdated }) {
               </span>
 
             </div>
+
 
             <label className="switch">
 
@@ -678,6 +784,9 @@ function Settings({ onSettingsUpdated }) {
             </label>
 
           </div>
+
+
+          {/* REMINDER TIME */}
 
           <div className="settings-field reminder-time-field">
 
@@ -698,21 +807,31 @@ function Settings({ onSettingsUpdated }) {
 
           </div>
 
+
+          {/* NOTE */}
+
           <div className="notification-note">
+
             Reminder delivery will be implemented
             after the frontend is completed.
+
           </div>
 
         </section>
       )}
 
-      {/* PRIVACY */}
+
+      {/* =====================================
+          DATA & PRIVACY
+      ===================================== */}
+
       {activeTab === "privacy" && (
         <section className="settings-card single-card">
 
           <div className="settings-card-heading">
 
             <div>
+
               <h2>
                 Data & Privacy
               </h2>
@@ -720,9 +839,11 @@ function Settings({ onSettingsUpdated }) {
               <p>
                 Manage your Life Tracker data.
               </p>
+
             </div>
 
           </div>
+
 
           <div className="privacy-info">
 

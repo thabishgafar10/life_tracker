@@ -1,93 +1,719 @@
 /* =========================================
-   LIFE TRACKER THEMES
-   ========================================= */
+   LIFE TRACKER THEME SYSTEM
+========================================= */
 
 .app-layout {
-  --theme-bg: #0b0f19;
-  --theme-surface: #111827;
-  --theme-surface-alt: #161d2d;
-  --theme-border: rgba(148, 163, 184, 0.16);
-  --theme-text: #f8fafc;
-  --theme-text-muted: #94a3b8;
+  --theme-bg: #0b1018;
+  --theme-surface: #121a26;
+  --theme-surface-alt: #151f2c;
+  --theme-border: #202b3a;
+
+  --theme-text: #f5f7fb;
+  --theme-text-secondary: #aab4c4;
+  --theme-text-muted: #7f8999;
+
+  --theme-accent: #7c5cff;
+  --theme-accent-hover: #8d72ff;
+
+  --theme-success: #45d9a8;
+  --theme-danger: #ff7d8e;
+
+  background: var(--theme-bg);
+  color: var(--theme-text);
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-/* LIGHT THEME */
+
+/* =========================================
+   LIGHT THEME VARIABLES
+========================================= */
 
 .app-layout[data-theme="light"] {
   --theme-bg: #f5f7fb;
   --theme-surface: #ffffff;
-  --theme-surface-alt: #eef2f7;
-  --theme-border: rgba(15, 23, 42, 0.12);
+  --theme-surface-alt: #f8fafc;
+  --theme-border: #e2e8f0;
+
   --theme-text: #172033;
+  --theme-text-secondary: #475569;
   --theme-text-muted: #64748b;
+
+  --theme-accent: #7c5cff;
+  --theme-accent-hover: #6d4fff;
+
+  --theme-success: #16a34a;
+  --theme-danger: #ef4444;
 }
 
-/* Main application background */
 
-.app-layout {
-  background: var(--theme-bg);
-  color: var(--theme-text);
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease;
-}
+/* =========================================
+   APP BACKGROUND
+========================================= */
 
-/* Main content */
-
+.app-layout,
 .app-layout .main-content {
   background: var(--theme-bg);
   color: var(--theme-text);
+
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
 }
 
-/* Sidebar */
+
+/* =========================================
+   SIDEBAR
+========================================= */
 
 .app-layout .sidebar {
   background: var(--theme-surface);
   color: var(--theme-text);
-  border-color: var(--theme-border);
+
+  border-right-color: var(--theme-border);
+
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
     border-color 0.2s ease;
 }
 
-/* General cards */
+.app-layout .sidebar-logo h2 {
+  color: var(--theme-text);
+}
 
-.app-layout .settings-card,
+.app-layout .sidebar-logo p,
+.app-layout .nav-label {
+  color: var(--theme-text-muted);
+}
+
+.app-layout .sidebar-link {
+  color: var(--theme-text-secondary);
+}
+
+.app-layout .sidebar-link:hover {
+  background: var(--theme-surface-alt);
+  color: var(--theme-text);
+}
+
+.app-layout .logout-button {
+  color: var(--theme-text-secondary);
+}
+
+.app-layout .logout-button:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--theme-danger);
+}
+
+
+/* =========================================
+   DASHBOARD - HEADER
+========================================= */
+
+.app-layout[data-theme="light"] .dashboard-topbar h1 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .dashboard-date {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .notification-button {
+  background: var(--theme-surface);
+  color: var(--theme-text-secondary);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .notification-button:hover {
+  color: var(--theme-accent);
+  border-color: var(--theme-accent);
+}
+
+
+/* =========================================
+   DASHBOARD - STAT CARDS
+========================================= */
+
+.app-layout[data-theme="light"] .dashboard-stat-card {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .dashboard-stat-card:hover {
+  border-color: #cbd5e1;
+}
+
+.app-layout[data-theme="light"] .stat-icon {
+  background: #f1f5f9;
+  color: var(--theme-accent);
+}
+
+.app-layout[data-theme="light"] .dashboard-stat-card p {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .dashboard-stat-card h2 {
+  color: var(--theme-text);
+}
+
+
+/* =========================================
+   DASHBOARD - MAIN CARDS
+========================================= */
+
+.app-layout[data-theme="light"] .dashboard-content-card {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .card-header h2 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .activity-count {
+  background: #f1f5f9;
+  color: var(--theme-text-muted);
+}
+
+
+/* =========================================
+   DASHBOARD - TODAY ACTIVITIES
+========================================= */
+
+.app-layout[data-theme="light"] .today-activity-item {
+  background: var(--theme-surface-alt);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .today-activity-item:hover {
+  background: #f1f5f9;
+}
+
+.app-layout[data-theme="light"] .activity-status {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.app-layout[data-theme="light"] .activity-item-left h3 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .activity-item-left p,
+.app-layout[data-theme="light"] .activity-goal {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .completed-label {
+  background: rgba(22, 163, 74, 0.10);
+  color: var(--theme-success);
+}
+
+
+/* =========================================
+   DASHBOARD - EMPTY / LOADING / ERROR
+========================================= */
+
+.app-layout[data-theme="light"] .empty-dashboard-state {
+  background: var(--theme-surface-alt);
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .page-loading,
+.app-layout[data-theme="light"] .page-error {
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .page-error h2 {
+  color: var(--theme-text);
+}
+
+
+/* =========================================
+   HABITS - SUMMARY CARDS
+========================================= */
+
+.app-layout[data-theme="light"] .habit-summary-card {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .habit-summary-card:hover {
+  border-color: #cbd5e1;
+}
+
+.app-layout[data-theme="light"] .summary-card-top p {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .habit-summary-card h2 {
+  color: var(--theme-text);
+}
+
+
+/* =========================================
+   HABITS - TRACKER
+========================================= */
+
+.app-layout[data-theme="light"] .habit-tracker-section {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .habit-tracker-header h2 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .habit-tracker-header p {
+  color: var(--theme-text-muted);
+}
+
+
+/* =========================================
+   HABITS - MONTH NAVIGATION
+========================================= */
+
+.app-layout[data-theme="light"] .month-navigation {
+  background: #f8fafc;
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .month-navigation button {
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .month-navigation button:hover {
+  background: #ffffff;
+  color: var(--theme-accent);
+}
+
+.app-layout[data-theme="light"] .month-navigation span {
+  color: var(--theme-text);
+}
+
+
+/* =========================================
+   HABITS - TABLE
+========================================= */
+
+.app-layout[data-theme="light"] .habit-tracker-table {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .habit-tracker-table th {
+  color: var(--theme-text-muted);
+  border-bottom-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .habit-tracker-table td {
+  border-bottom-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .habit-name-cell strong {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .habit-name-cell small {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .day-column span {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .day-column strong {
+  color: var(--theme-text-secondary);
+}
+
+
+/* =========================================
+   HABITS - TRACKER CELLS
+========================================= */
+
+.app-layout[data-theme="light"] .tracker-empty {
+  background: #f8fafc;
+  border-color: #dbe3ec;
+}
+
+.app-layout[data-theme="light"] .tracker-completed {
+  background: rgba(22, 163, 74, 0.10);
+  border-color: var(--theme-success);
+  color: var(--theme-success);
+}
+
+.app-layout[data-theme="light"] .tracker-missed {
+  background: rgba(239, 68, 68, 0.10);
+  border-color: var(--theme-danger);
+  color: var(--theme-danger);
+}
+
+.app-layout[data-theme="light"] .tracker-number {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .tracker-progress-bar {
+  background: #e2e8f0;
+}
+
+.app-layout[data-theme="light"] .tracker-progress span {
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .tracker-empty-state {
+  color: var(--theme-text-muted);
+}
+
+
+/* =========================================
+   HABITS - LEGEND
+========================================= */
+
+.app-layout[data-theme="light"] .tracker-legend {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .legend-empty {
+  background: #f8fafc;
+  border-color: #dbe3ec;
+}
+
+.app-layout[data-theme="light"] .legend-completed {
+  background: rgba(22, 163, 74, 0.10);
+}
+
+.app-layout[data-theme="light"] .legend-missed {
+  background: rgba(239, 68, 68, 0.10);
+}
+
+
+/* =========================================
+   ACTIVITIES / HABIT MANAGEMENT
+========================================= */
+
+.app-layout[data-theme="light"] .activities-header h1 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .activities-subtitle {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .activities-summary > div {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .activities-summary p {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .activities-summary h2 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .activity-card {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .activity-card:hover {
+  background: var(--theme-surface-alt);
+  border-color: #cbd5e1;
+}
+
+.app-layout[data-theme="light"] .activity-card h2 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .activity-category {
+  background: #f1f5f9;
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .activity-card-detail {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .activity-card-detail svg {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .icon-action-button {
+  background: #f8fafc;
+  border-color: var(--theme-border);
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .icon-action-button:hover {
+  color: var(--theme-accent);
+  border-color: var(--theme-accent);
+}
+
+.app-layout[data-theme="light"] .activities-empty-state {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .activities-empty-state h2 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .activities-empty-state p {
+  color: var(--theme-text-muted);
+}
+
+
+/* =========================================
+   ACTIVITY MODALS
+========================================= */
+
+.app-layout[data-theme="light"] .activity-modal-overlay,
+.app-layout[data-theme="light"] .modal-overlay {
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.app-layout[data-theme="light"] .activity-modal {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+
+  box-shadow:
+    0 25px 70px rgba(15, 23, 42, 0.18);
+}
+
+.app-layout[data-theme="light"] .activity-modal-header h2,
+.app-layout[data-theme="light"] .modal-header h2 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .modal-close-button {
+  background: #f1f5f9;
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .modal-close-button:hover {
+  background: #e2e8f0;
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .form-group label {
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .form-group input {
+  background: #f8fafc;
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .form-group input::placeholder {
+  color: #94a3b8;
+}
+
+.app-layout[data-theme="light"] .form-group input:focus {
+  background: #ffffff;
+}
+
+
+/* =========================================
+   NOTES
+========================================= */
+
+.app-layout[data-theme="light"] .notes-list-panel,
+.app-layout[data-theme="light"] .notes-detail-panel,
+.app-layout[data-theme="light"] .notes-editor-card {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .notes-list-header {
+  border-bottom-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .notes-list-header h2 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .notes-list-header span {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .notes-date-heading {
+  color: var(--theme-accent);
+}
+
+.app-layout[data-theme="light"] .note-list-item {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .note-list-item:hover {
+  background: var(--theme-surface-alt);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .note-list-item.selected {
+  background: rgba(124, 92, 255, 0.08);
+  border-color: rgba(124, 92, 255, 0.25);
+}
+
+.app-layout[data-theme="light"] .note-list-item-top {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .note-list-item p {
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .notes-detail-header {
+  border-bottom-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .notes-detail-header h2 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .notes-detail-actions button,
+.app-layout[data-theme="light"] .notes-close-button {
+  background: #f8fafc;
+  border-color: var(--theme-border);
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .notes-detail-content {
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .notes-detail-empty h3,
+.app-layout[data-theme="light"] .notes-empty-state h3 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .notes-detail-empty p,
+.app-layout[data-theme="light"] .notes-empty-state p {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .notes-editor-header h2 {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .notes-editor-header p {
+  color: var(--theme-text-muted);
+}
+
+.app-layout[data-theme="light"] .notes-form-row span,
+.app-layout[data-theme="light"] .notes-content-label span {
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .notes-date-input {
+  background: #f8fafc;
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] .notes-date-input input {
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .notes-content-label textarea {
+  background: #f8fafc;
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+}
+
+.app-layout[data-theme="light"] .notes-cancel-button {
+  border-color: var(--theme-border);
+  color: var(--theme-text-secondary);
+}
+
+.app-layout[data-theme="light"] .notes-cancel-button:hover {
+  background: #f1f5f9;
+}
+
+
+/* =========================================
+   GENERIC FORM ELEMENTS
+========================================= */
+
+.app-layout[data-theme="light"] input,
+.app-layout[data-theme="light"] select,
+.app-layout[data-theme="light"] textarea {
+  background: #ffffff;
+  color: var(--theme-text);
+  border-color: var(--theme-border);
+}
+
+.app-layout[data-theme="light"] input::placeholder,
+.app-layout[data-theme="light"] textarea::placeholder {
+  color: #94a3b8;
+}
+
+
+/* =========================================
+   GENERIC BUTTON TEXT
+========================================= */
+
+.app-layout[data-theme="light"] button {
+  color: inherit;
+}
+
+
+/* =========================================
+   PRESERVE IMPORTANT DATA COLORS
+========================================= */
+
+.app-layout[data-theme="light"] .tracker-completed,
+.app-layout[data-theme="light"] .legend-completed {
+  color: #16a34a;
+}
+
+.app-layout[data-theme="light"] .tracker-missed,
+.app-layout[data-theme="light"] .legend-missed {
+  color: #ef4444;
+}
+
+
+/* =========================================
+   SMOOTH THEME TRANSITION
+========================================= */
+
+.app-layout,
+.app-layout .main-content,
+.app-layout .sidebar,
+.app-layout .dashboard-stat-card,
+.app-layout .dashboard-content-card,
+.app-layout .today-activity-item,
+.app-layout .habit-summary-card,
+.app-layout .habit-tracker-section,
 .app-layout .activity-card,
-.app-layout .analytics-card,
-.app-layout .stat-card,
-.app-layout .note-card {
-  background: var(--theme-surface);
-  color: var(--theme-text);
-  border-color: var(--theme-border);
+.app-layout .activities-summary > div,
+.app-layout .notes-list-panel,
+.app-layout .notes-detail-panel,
+.app-layout .notes-editor-card {
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
     border-color 0.2s ease;
 }
 
-/* Inputs */
+/* =========================================
+   FINAL LIGHT THEME FIX - ACTIVITY SUMMARY
+========================================= */
 
-.app-layout input,
-.app-layout select,
-.app-layout textarea {
-  background: var(--theme-surface);
-  color: var(--theme-text);
-  border-color: var(--theme-border);
+.app-layout[data-theme="light"] .activities-summary {
+  background: #ffffff;
+  border-color: #e2e8f0;
 }
 
-/* Muted text */
-
-.app-layout p {
-  color: inherit;
+.app-layout[data-theme="light"] .activities-summary > div {
+  background: #ffffff;
+  border-color: #e2e8f0;
 }
 
-/* Buttons that rely on transparent backgrounds */
+.app-layout[data-theme="light"] .activities-summary p {
+  color: #64748b;
+}
 
-.app-layout button {
-  color: inherit;
+.app-layout[data-theme="light"] .activities-summary h2 {
+  color: #172033;
 }
