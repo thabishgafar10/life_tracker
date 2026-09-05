@@ -529,3 +529,64 @@ body,
     color 0.2s ease,
     border-color 0.2s ease;
 }
+
+/* =========================================
+   NATIVE SELECT / OPTION THEME FIX
+========================================= */
+
+/* DARK THEME */
+
+.app-layout[data-theme="dark"] select {
+  color: #f5f7fb;
+  background: #111827;
+  color-scheme: dark;
+}
+
+.app-layout[data-theme="dark"] select option {
+  color: #f5f7fb;
+  background: #111827;
+}
+
+
+/* LIGHT THEME */
+
+.app-layout[data-theme="light"] select {
+  color: #172033;
+  background: #ffffff;
+  color-scheme: light;
+}
+
+.app-layout[data-theme="light"] select option {
+  color: #172033;
+  background: #ffffff;
+}
+
+
+/* SETTINGS SELECTS */
+
+.app-layout[data-theme="light"] .settings-field select,
+.app-layout[data-theme="light"] .preference-row select {
+  color: #172033;
+  background-color: #ffffff;
+}
+
+.app-layout[data-theme="light"] .settings-field select option,
+.app-layout[data-theme="light"] .preference-row select option {
+  color: #172033;
+  background-color: #ffffff;
+}
+
+
+/* DARK SETTINGS SELECTS */
+
+.app-layout[data-theme="dark"] .settings-field select,
+.app-layout[data-theme="dark"] .preference-row select {
+  color: #f5f7fb;
+  background-color: #111827;
+}
+
+.app-layout[data-theme="dark"] .settings-field select option,
+.app-layout[data-theme="dark"] .preference-row select option {
+  color: #f5f7fb;
+  background-color: #111827;
+}
