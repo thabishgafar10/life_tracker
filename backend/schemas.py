@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from datetime import datetime, date
-from typing import Optional
+from typing import Optional, Literal
 
 
-# =========================
+# =========================================================
 # ACTIVITY SCHEMAS
-# =========================
+# =========================================================
 
 class ActivityCreate(BaseModel):
     name: str
@@ -24,9 +24,9 @@ class ActivityResponse(BaseModel):
         from_attributes = True
 
 
-# =========================
+# =========================================================
 # ACTIVITY LOG SCHEMAS
-# =========================
+# =========================================================
 
 class ActivityLogCreate(BaseModel):
     activity_id: int
@@ -47,9 +47,10 @@ class ActivityLogResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# =========================
+
+# =========================================================
 # DAILY NOTE SCHEMAS
-# =========================
+# =========================================================
 
 class DailyNoteCreate(BaseModel):
     date: date
@@ -65,9 +66,10 @@ class DailyNoteResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# =========================
+
+# =========================================================
 # ANALYTICS SCHEMAS
-# =========================
+# =========================================================
 
 class ActivityStatisticsResponse(BaseModel):
     activity_id: int
@@ -79,9 +81,10 @@ class ActivityStatisticsResponse(BaseModel):
     current_streak: int
     best_streak: int
 
-# =========================
+
+# =========================================================
 # OVERVIEW ANALYTICS
-# =========================
+# =========================================================
 
 class OverviewStatisticsResponse(BaseModel):
     total_activities: int
@@ -90,9 +93,10 @@ class OverviewStatisticsResponse(BaseModel):
     missed_logs: int
     overall_completion_rate: float
 
-# =========================
+
+# =========================================================
 # TREND SCHEMAS
-# =========================
+# =========================================================
 
 class DailyTrendResponse(BaseModel):
     date: date
@@ -100,15 +104,17 @@ class DailyTrendResponse(BaseModel):
     completed: int
     completion_rate: float
 
+
 class WeeklyTrendResponse(BaseModel):
     week: str
     total: int
     completed: int
     completion_rate: float
 
-# =========================
+
+# =========================================================
 # CALENDAR SCHEMAS
-# =========================
+# =========================================================
 
 class CalendarDayResponse(BaseModel):
     date: date
@@ -116,9 +122,10 @@ class CalendarDayResponse(BaseModel):
     completed: int
     completion_rate: float
 
-# =========================
+
+# =========================================================
 # SETTINGS SCHEMAS
-# =========================
+# =========================================================
 
 class SettingsResponse(BaseModel):
     id: int
@@ -144,3 +151,65 @@ class SettingsUpdate(BaseModel):
     daily_reminders: bool
     reminder_time: str
     week_start_day: str
+
+
+# =========================================================
+# AUTHENTICATION SCHEMAS
+# =========================================================
+
+class UserRegister(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+# =========================================================
+# OTP SCHEMAS
+# =========================================================
+
+class OTPRequest(BaseModel):
+    email: EmailStr
+
+    purpose: Literal[
+        "login",
+        "password_reset"
+    ]
+
+
+class OTPVerify(BaseModel):
+    email: EmailStr
+    otp: str
+
+    purpose: Literal[
+        "login",
+        "password_reset"
+    ]
+
+
+# =========================================================
+# PASSWORD RESET SCHEMAS
+# =========================================================
+
+class PasswordResetRequest(BaseModel):
+    reset_token: str
+    new_password: str

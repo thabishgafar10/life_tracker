@@ -6,22 +6,46 @@ from database import engine, Base, get_db
 import models
 import schemas
 import analytics
+import auth
 
 
-# Create database tables
+# =========================================================
+# CREATE DATABASE TABLES
+# =========================================================
+
 Base.metadata.create_all(bind=engine)
 
+
+# =========================================================
+# APP
+# =========================================================
 
 app = FastAPI(
     title="Life Tracker API"
 )
 
+
+# =========================================================
+# CORS
+# =========================================================
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+
+# =========================================================
+# AUTHENTICATION ROUTES
+# =========================================================
+
+app.include_router(
+    auth.router
 )
 
 
@@ -41,7 +65,10 @@ def home():
 # =========================================================
 
 # CREATE AN ACTIVITY
-@app.post("/activities", response_model=schemas.ActivityResponse)
+@app.post(
+    "/activities",
+    response_model=schemas.ActivityResponse
+)
 def create_activity(
     activity: schemas.ActivityCreate,
     db: Session = Depends(get_db)
@@ -58,8 +85,12 @@ def create_activity(
 
     return new_activity
 
+
 # UPDATE AN ACTIVITY
-@app.put("/activities/{activity_id}", response_model=schemas.ActivityResponse)
+@app.put(
+    "/activities/{activity_id}",
+    response_model=schemas.ActivityResponse
+)
 def update_activity(
     activity_id: int,
     activity: schemas.ActivityCreate,
@@ -67,7 +98,9 @@ def update_activity(
 ):
     existing_activity = (
         db.query(models.Activity)
-        .filter(models.Activity.id == activity_id)
+        .filter(
+            models.Activity.id == activity_id
+        )
         .first()
     )
 
@@ -88,7 +121,10 @@ def update_activity(
 
 
 # GET ALL ACTIVITIES
-@app.get("/activities", response_model=list[schemas.ActivityResponse])
+@app.get(
+    "/activities",
+    response_model=list[schemas.ActivityResponse]
+)
 def get_activities(
     db: Session = Depends(get_db)
 ):
@@ -101,14 +137,18 @@ def get_activities(
 
 
 # DELETE AN ACTIVITY
-@app.delete("/activities/{activity_id}")
+@app.delete(
+    "/activities/{activity_id}"
+)
 def delete_activity(
     activity_id: int,
     db: Session = Depends(get_db)
 ):
     activity = (
         db.query(models.Activity)
-        .filter(models.Activity.id == activity_id)
+        .filter(
+            models.Activity.id == activity_id
+        )
         .first()
     )
 
@@ -142,7 +182,9 @@ def create_activity_log(
     # Check whether the activity exists
     activity = (
         db.query(models.Activity)
-        .filter(models.Activity.id == log.activity_id)
+        .filter(
+            models.Activity.id == log.activity_id
+        )
         .first()
     )
 
@@ -165,7 +207,10 @@ def create_activity_log(
     if existing_log is not None:
         raise HTTPException(
             status_code=409,
-            detail="A log for this activity already exists for this date"
+            detail=(
+                "A log for this activity already "
+                "exists for this date"
+            )
         )
 
     # Create new log
@@ -194,7 +239,9 @@ def get_activity_logs(
 ):
     logs = (
         db.query(models.ActivityLog)
-        .order_by(models.ActivityLog.date.desc())
+        .order_by(
+            models.ActivityLog.date.desc()
+        )
         .all()
     )
 
@@ -214,7 +261,9 @@ def update_activity_log(
     # Find existing log
     existing_log = (
         db.query(models.ActivityLog)
-        .filter(models.ActivityLog.id == log_id)
+        .filter(
+            models.ActivityLog.id == log_id
+        )
         .first()
     )
 
@@ -227,7 +276,9 @@ def update_activity_log(
     # Make sure the new activity exists
     activity = (
         db.query(models.Activity)
-        .filter(models.Activity.id == log.activity_id)
+        .filter(
+            models.Activity.id == log.activity_id
+        )
         .first()
     )
 
@@ -237,7 +288,7 @@ def update_activity_log(
             detail="Activity not found"
         )
 
-    # Check whether changing the date/activity
+    # Check whether changing activity/date
     # would create a duplicate log
     duplicate_log = (
         db.query(models.ActivityLog)
@@ -252,10 +303,13 @@ def update_activity_log(
     if duplicate_log is not None:
         raise HTTPException(
             status_code=409,
-            detail="Another log already exists for this activity on this date"
+            detail=(
+                "Another log already exists for "
+                "this activity on this date"
+            )
         )
 
-    # Update the existing log
+    # Update existing log
     existing_log.activity_id = log.activity_id
     existing_log.date = log.date
     existing_log.completed = log.completed
@@ -269,14 +323,18 @@ def update_activity_log(
 
 
 # DELETE ACTIVITY LOG
-@app.delete("/activity-logs/{log_id}")
+@app.delete(
+    "/activity-logs/{log_id}"
+)
 def delete_activity_log(
     log_id: int,
     db: Session = Depends(get_db)
 ):
     existing_log = (
         db.query(models.ActivityLog)
-        .filter(models.ActivityLog.id == log_id)
+        .filter(
+            models.ActivityLog.id == log_id
+        )
         .first()
     )
 
@@ -292,6 +350,7 @@ def delete_activity_log(
     return {
         "message": "Activity log deleted successfully"
     }
+
 
 # =========================================================
 # DAILY NOTES
@@ -328,7 +387,9 @@ def get_daily_notes(
 ):
     notes = (
         db.query(models.DailyNote)
-        .order_by(models.DailyNote.date.desc())
+        .order_by(
+            models.DailyNote.date.desc()
+        )
         .all()
     )
 
@@ -347,7 +408,9 @@ def update_daily_note(
 ):
     existing_note = (
         db.query(models.DailyNote)
-        .filter(models.DailyNote.id == note_id)
+        .filter(
+            models.DailyNote.id == note_id
+        )
         .first()
     )
 
@@ -367,14 +430,18 @@ def update_daily_note(
 
 
 # DELETE DAILY NOTE
-@app.delete("/daily-notes/{note_id}")
+@app.delete(
+    "/daily-notes/{note_id}"
+)
 def delete_daily_note(
     note_id: int,
     db: Session = Depends(get_db)
 ):
     existing_note = (
         db.query(models.DailyNote)
-        .filter(models.DailyNote.id == note_id)
+        .filter(
+            models.DailyNote.id == note_id
+        )
         .first()
     )
 
@@ -391,6 +458,7 @@ def delete_daily_note(
         "message": "Daily note deleted successfully"
     }
 
+
 # =========================================================
 # ANALYTICS
 # =========================================================
@@ -404,10 +472,11 @@ def get_activity_statistics(
     activity_id: int,
     db: Session = Depends(get_db)
 ):
-    # Find the activity
     activity = (
         db.query(models.Activity)
-        .filter(models.Activity.id == activity_id)
+        .filter(
+            models.Activity.id == activity_id
+        )
         .first()
     )
 
@@ -417,7 +486,6 @@ def get_activity_statistics(
             detail="Activity not found"
         )
 
-    # Get all logs for this activity
     logs = (
         db.query(models.ActivityLog)
         .filter(
@@ -426,10 +494,13 @@ def get_activity_statistics(
         .all()
     )
 
-    # Calculate statistics
-    statistics = analytics.calculate_activity_statistics(logs)
+    statistics = (
+        analytics.calculate_activity_statistics(logs)
+    )
 
-    streaks = analytics.calculate_streaks(logs)
+    streaks = (
+        analytics.calculate_streaks(logs)
+    )
 
     return {
         "activity_id": activity.id,
@@ -437,6 +508,7 @@ def get_activity_statistics(
         **statistics,
         **streaks
     }
+
 
 # GET WEEKLY ACTIVITY STATISTICS
 @app.get(
@@ -447,10 +519,11 @@ def get_weekly_activity_statistics(
     activity_id: int,
     db: Session = Depends(get_db)
 ):
-    # Find the activity
     activity = (
         db.query(models.Activity)
-        .filter(models.Activity.id == activity_id)
+        .filter(
+            models.Activity.id == activity_id
+        )
         .first()
     )
 
@@ -460,7 +533,6 @@ def get_weekly_activity_statistics(
             detail="Activity not found"
         )
 
-    # Get all logs for this activity
     logs = (
         db.query(models.ActivityLog)
         .filter(
@@ -469,24 +541,28 @@ def get_weekly_activity_statistics(
         .all()
     )
 
-    # Get current week's date range
-    start_date, end_date = analytics.get_week_range()
-
-    # Keep only this week's logs
-    weekly_logs = analytics.filter_logs_by_date(
-        logs,
-        start_date,
-        end_date
+    start_date, end_date = (
+        analytics.get_week_range()
     )
 
-    # Calculate statistics
-    statistics = analytics.calculate_activity_statistics(
-        weekly_logs
+    weekly_logs = (
+        analytics.filter_logs_by_date(
+            logs,
+            start_date,
+            end_date
+        )
     )
 
-    # Calculate streaks for this week's logs
-    streaks = analytics.calculate_streaks(
-        weekly_logs
+    statistics = (
+        analytics.calculate_activity_statistics(
+            weekly_logs
+        )
+    )
+
+    streaks = (
+        analytics.calculate_streaks(
+            weekly_logs
+        )
     )
 
     return {
@@ -495,6 +571,7 @@ def get_weekly_activity_statistics(
         **statistics,
         **streaks
     }
+
 
 # GET MONTHLY ACTIVITY STATISTICS
 @app.get(
@@ -505,10 +582,11 @@ def get_monthly_activity_statistics(
     activity_id: int,
     db: Session = Depends(get_db)
 ):
-    # Find the activity
     activity = (
         db.query(models.Activity)
-        .filter(models.Activity.id == activity_id)
+        .filter(
+            models.Activity.id == activity_id
+        )
         .first()
     )
 
@@ -518,7 +596,6 @@ def get_monthly_activity_statistics(
             detail="Activity not found"
         )
 
-    # Get all logs for this activity
     logs = (
         db.query(models.ActivityLog)
         .filter(
@@ -527,24 +604,28 @@ def get_monthly_activity_statistics(
         .all()
     )
 
-    # Get current month's date range
-    start_date, end_date = analytics.get_month_range()
-
-    # Keep only this month's logs
-    monthly_logs = analytics.filter_logs_by_date(
-        logs,
-        start_date,
-        end_date
+    start_date, end_date = (
+        analytics.get_month_range()
     )
 
-    # Calculate statistics
-    statistics = analytics.calculate_activity_statistics(
-        monthly_logs
+    monthly_logs = (
+        analytics.filter_logs_by_date(
+            logs,
+            start_date,
+            end_date
+        )
     )
 
-    # Calculate streaks
-    streaks = analytics.calculate_streaks(
-        monthly_logs
+    statistics = (
+        analytics.calculate_activity_statistics(
+            monthly_logs
+        )
+    )
+
+    streaks = (
+        analytics.calculate_streaks(
+            monthly_logs
+        )
     )
 
     return {
@@ -553,6 +634,7 @@ def get_monthly_activity_statistics(
         **statistics,
         **streaks
     }
+
 
 # GET OVERALL STATISTICS
 @app.get(
@@ -567,11 +649,14 @@ def get_overall_statistics(
         .all()
     )
 
-    statistics = analytics.calculate_overall_statistics(
-        activities
+    statistics = (
+        analytics.calculate_overall_statistics(
+            activities
+        )
     )
 
     return statistics
+
 
 # GET DAILY ACTIVITY TRENDS
 @app.get(
@@ -581,17 +666,20 @@ def get_overall_statistics(
 def get_daily_trends(
     db: Session = Depends(get_db)
 ):
-    # Get all activity logs
     logs = (
         db.query(models.ActivityLog)
-        .order_by(models.ActivityLog.date.asc())
+        .order_by(
+            models.ActivityLog.date.asc()
+        )
         .all()
     )
 
-    # Calculate daily trends
-    trends = analytics.calculate_daily_data(logs)
+    trends = (
+        analytics.calculate_daily_data(logs)
+    )
 
     return trends
+
 
 # GET WEEKLY ACTIVITY TRENDS
 @app.get(
@@ -603,13 +691,18 @@ def get_weekly_trends(
 ):
     logs = (
         db.query(models.ActivityLog)
-        .order_by(models.ActivityLog.date.asc())
+        .order_by(
+            models.ActivityLog.date.asc()
+        )
         .all()
     )
 
-    trends = analytics.calculate_weekly_trends(logs)
+    trends = (
+        analytics.calculate_weekly_trends(logs)
+    )
 
     return trends
+
 
 # GET CALENDAR DATA
 @app.get(
@@ -621,13 +714,18 @@ def get_calendar_data(
 ):
     logs = (
         db.query(models.ActivityLog)
-        .order_by(models.ActivityLog.date.asc())
+        .order_by(
+            models.ActivityLog.date.asc()
+        )
         .all()
     )
 
-    calendar = analytics.calculate_daily_data(logs)
+    calendar = (
+        analytics.calculate_daily_data(logs)
+    )
 
     return calendar
+
 
 # =========================================================
 # SETTINGS
@@ -643,12 +741,15 @@ def get_settings(
 ):
     settings = (
         db.query(models.Settings)
-        .filter(models.Settings.id == 1)
+        .filter(
+            models.Settings.id == 1
+        )
         .first()
     )
 
-    # Create default settings for the first run
+    # Create default settings for first run
     if settings is None:
+
         settings = models.Settings(
             id=1,
             name="Demo User",
@@ -679,12 +780,15 @@ def update_settings(
 ):
     settings = (
         db.query(models.Settings)
-        .filter(models.Settings.id == 1)
+        .filter(
+            models.Settings.id == 1
+        )
         .first()
     )
 
-    # Create the settings row if it doesn't exist
+    # Create settings row if it doesn't exist
     if settings is None:
+
         settings = models.Settings(
             id=1
         )
@@ -696,9 +800,15 @@ def update_settings(
     settings.timezone = settings_data.timezone
     settings.theme = settings_data.theme
     settings.accent_color = settings_data.accent_color
-    settings.daily_reminders = settings_data.daily_reminders
-    settings.reminder_time = settings_data.reminder_time
-    settings.week_start_day = settings_data.week_start_day
+    settings.daily_reminders = (
+        settings_data.daily_reminders
+    )
+    settings.reminder_time = (
+        settings_data.reminder_time
+    )
+    settings.week_start_day = (
+        settings_data.week_start_day
+    )
 
     db.commit()
     db.refresh(settings)
