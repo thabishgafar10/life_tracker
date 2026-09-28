@@ -1,17 +1,11 @@
-import axios from "axios";
-
-const API_BASE_URL = "http://127.0.0.1:8000";
+import api from "./api";
 
 export async function getSettings() {
-  const response = await axios.get(`${API_BASE_URL}/settings`);
+  const response = await api.get("/settings");
   return response.data;
 }
 
 export async function updateSettings(settings) {
-  const response = await axios.put(
-    `${API_BASE_URL}/settings`,
-    settings
-  );
-
+  const response = await api.put("/settings", settings);
   return response.data;
 }

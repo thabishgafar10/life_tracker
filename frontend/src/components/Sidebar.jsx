@@ -10,7 +10,11 @@ import {
   LogOut,
 } from "lucide-react";
 
+import { useAuth } from "../context/AuthContext.jsx";
+
 function Sidebar() {
+  const { logout } = useAuth();
+
   const navItems = [
     {
       name: "Dashboard",
@@ -86,6 +90,7 @@ function Sidebar() {
         <button
           className="logout-button"
           type="button"
+          onClick={logout}
         >
           <LogOut size={20} />
           <span>Logout</span>

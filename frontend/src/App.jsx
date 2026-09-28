@@ -1,16 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   BrowserRouter,
-  Routes,
+  Navigate,
   Route,
+  Routes,
 } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import Dashboard from "./pages/Dashboard";
 import Habits from "./pages/Habits";
 import Analytics from "./pages/Analytics";
 import Notes from "./pages/Notes";
 import Settings from "./pages/Settings";
+
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import VerifyOTP from "./pages/VerifyOTP";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import { getSettings } from "./services/settingsApi";
 
@@ -37,9 +46,7 @@ function getLocalSettings() {
       return null;
     }
 
-    const parsedSettings = JSON.parse(
-      savedSettings
-    );
+    const parsedSettings = JSON.parse(savedSettings);
 
     return {
       ...DEFAULT_SETTINGS,
@@ -63,7 +70,7 @@ function saveLocalSettings(settings) {
     );
   } catch (error) {
     console.error(
-      "Failed to save local settings:",
+      "Failed to save settings:",
       error
     );
   }
@@ -77,9 +84,6 @@ function App() {
   const [settingsLoaded, setSettingsLoaded] =
     useState(false);
 
-  /*
-    Load backend settings once when the app starts.
-  */
   useEffect(() => {
     async function loadSettings() {
       try {
@@ -89,13 +93,6 @@ function App() {
         const localSettings =
           getLocalSettings();
 
-        /*
-          Backend provides the account data.
-
-          Local storage has priority for theme
-          and accent color because those are the
-          user's current UI preferences.
-        */
         const loadedSettings = {
           name:
             backendSettings.name ??
@@ -133,22 +130,12 @@ function App() {
         };
 
         setSettings(loadedSettings);
-
-        /*
-          Store the final settings locally so the
-          same theme is restored after refresh.
-        */
         saveLocalSettings(loadedSettings);
       } catch (error) {
         console.error(
           "Failed to load settings:",
           error
         );
-
-        /*
-          If backend isn't available, keep using
-          the locally saved settings.
-        */
       } finally {
         setSettingsLoaded(true);
       }
@@ -157,10 +144,6 @@ function App() {
     loadSettings();
   }, []);
 
-  /*
-    Called whenever Settings changes the UI
-    preferences.
-  */
   const handleSettingsUpdated = useCallback(
     (updatedSettings) => {
       setSettings((currentSettings) => {
@@ -169,9 +152,6 @@ function App() {
           ...updatedSettings,
         };
 
-        /*
-          Persist immediately in the browser.
-        */
         saveLocalSettings(newSettings);
 
         return newSettings;
@@ -180,9 +160,6 @@ function App() {
     []
   );
 
-  /*
-    Dashboard theme toggle.
-  */
   const toggleTheme = useCallback(() => {
     setSettings((currentSettings) => {
       const newSettings = {
@@ -201,63 +178,149 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Routes>
 
-      <div
-        className="app-layout"
-        data-theme={settings.theme}
-        data-accent={settings.accent_color}
-      >
+        {/* =========================
+            PUBLIC AUTH ROUTES
+        ========================= */}
 
-        <Sidebar />
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
-        <main className="main-content">
+        <Route
+          path="/register"
+          element={<Register />}
+        />
 
-          <Routes>
+        <Route
+          path="/verify-otp"
+          element={<VerifyOTP />}
+        />
 
-            <Route
-              path="/"
-              element={
-                <Dashboard
-                  theme={settings.theme}
-                  toggleTheme={toggleTheme}
-                />
-              }
-            />
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
 
-            <Route
-              path="/habits"
-              element={<Habits />}
-            />
+        <Route
+          path="/reset-password"
+          element={<ResetPassword />}
+        />
 
-            <Route
-              path="/analytics"
-              element={<Analytics />}
-            />
 
-            <Route
-              path="/notes"
-              element={<Notes />}
-            />
+        {/* =========================
+            PROTECTED APPLICATION
+        ========================= */}
 
-            <Route
-              path="/settings"
-              element={
-                <Settings
-                  settings={settings}
-                  settingsLoaded={settingsLoaded}
-                  onSettingsUpdated={
-                    handleSettingsUpdated
-                  }
-                />
-              }
-            />
+        <Route element={<ProtectedRoute />}>
+          <Route
+            path="/"
+            element={
+              <div
+                className="app-layout"
+                data-theme={settings.theme}
+                data-accent={settings.accent_color}
+              >
+                <Sidebar />
 
-          </Routes>
+                <main className="main-content">
+                  <Dashboard
+                    theme={settings.theme}
+                    toggleTheme={toggleTheme}
+                  />
+                </main>
+              </div>
+            }
+          />
 
-        </main>
+          <Route
+            path="/habits"
+            element={
+              <div
+                className="app-layout"
+                data-theme={settings.theme}
+                data-accent={settings.accent_color}
+              >
+                <Sidebar />
 
-      </div>
+                <main className="main-content">
+                  <Habits />
+                </main>
+              </div>
+            }
+          />
 
+          <Route
+            path="/analytics"
+            element={
+              <div
+                className="app-layout"
+                data-theme={settings.theme}
+                data-accent={settings.accent_color}
+              >
+                <Sidebar />
+
+                <main className="main-content">
+                  <Analytics />
+                </main>
+              </div>
+            }
+          />
+
+          <Route
+            path="/notes"
+            element={
+              <div
+                className="app-layout"
+                data-theme={settings.theme}
+                data-accent={settings.accent_color}
+              >
+                <Sidebar />
+
+                <main className="main-content">
+                  <Notes />
+                </main>
+              </div>
+            }
+          />
+
+          <Route
+            path="/settings"
+            element={
+              <div
+                className="app-layout"
+                data-theme={settings.theme}
+                data-accent={settings.accent_color}
+              >
+                <Sidebar />
+
+                <main className="main-content">
+                  <Settings
+                    settings={settings}
+                    settingsLoaded={settingsLoaded}
+                    onSettingsUpdated={
+                      handleSettingsUpdated
+                    }
+                  />
+                </main>
+              </div>
+            }
+          />
+
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to="/"
+                replace
+              />
+            }
+          />
+        </Route>
+
+      </Routes>
     </BrowserRouter>
   );
 }

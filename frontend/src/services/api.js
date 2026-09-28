@@ -1,24 +1,151 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = "https://life-tracker-s7de.onrender.com";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
 
-/* ================================
-   ACTIVITIES
-================================ */
+// ========================================
+// AUTHENTICATION
+// ========================================
 
-// Get all activities
+export function getAccessToken() {
+  return localStorage.getItem("access_token");
+}
+
+
+export function saveAccessToken(token) {
+  localStorage.setItem("access_token", token);
+}
+
+
+export function logoutUser() {
+  localStorage.removeItem("access_token");
+}
+
+
+// Attach JWT to authenticated requests
+api.interceptors.request.use(
+  (config) => {
+    const token = getAccessToken();
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+
+// ========================================
+// NORMAL PASSWORD LOGIN
+// ========================================
+
+export async function loginUser(credentials) {
+  const response = await api.post(
+    "/auth/login",
+    {
+      username: credentials.username,
+      password: credentials.password,
+    }
+  );
+
+  return response.data;
+}
+
+
+// ========================================
+// CURRENT USER
+// ========================================
+
+export async function getCurrentUser() {
+  const response = await api.get("/auth/me");
+  return response.data;
+}
+
+
+// ========================================
+// OTP AUTHENTICATION
+// ========================================
+
+export async function requestOTP({
+  email,
+  purpose,
+}) {
+  const response = await api.post(
+    "/auth/request-otp",
+    {
+      email,
+      purpose,
+    }
+  );
+
+  return response.data;
+}
+
+
+export async function verifyOTP({
+  email,
+  otp,
+  purpose,
+}) {
+  const response = await api.post(
+    "/auth/verify-otp",
+    {
+      email,
+      otp,
+      purpose,
+    }
+  );
+
+  return response.data;
+}
+
+
+// ========================================
+// REGISTRATION
+// ========================================
+
+export async function registerUser(userData) {
+  const response = await api.post(
+    "/auth/register",
+    userData
+  );
+
+  return response.data;
+}
+
+
+// ========================================
+// PASSWORD RESET
+// ========================================
+
+export async function resetPassword(resetData) {
+  const response = await api.post(
+    "/auth/reset-password",
+    resetData
+  );
+
+  return response.data;
+}
+
+
+// ========================================
+// ACTIVITIES
+// ========================================
+
 export async function getActivities() {
   const response = await api.get("/activities");
   return response.data;
 }
 
 
-// Create activity
 export async function createActivity(activityData) {
   const response = await api.post(
     "/activities",
@@ -29,7 +156,6 @@ export async function createActivity(activityData) {
 }
 
 
-// Update activity
 export async function updateActivity(
   activityId,
   activityData
@@ -43,7 +169,6 @@ export async function updateActivity(
 }
 
 
-// Delete activity
 export async function deleteActivity(activityId) {
   const response = await api.delete(
     `/activities/${activityId}`
@@ -53,18 +178,16 @@ export async function deleteActivity(activityId) {
 }
 
 
-/* ================================
-   ACTIVITY LOGS
-================================ */
+// ========================================
+// ACTIVITY LOGS
+// ========================================
 
-// Get all activity logs
 export async function getActivityLogs() {
   const response = await api.get("/activity-logs");
   return response.data;
 }
 
 
-// Create activity log
 export async function createActivityLog(logData) {
   const response = await api.post(
     "/activity-logs",
@@ -75,7 +198,6 @@ export async function createActivityLog(logData) {
 }
 
 
-// Update activity log
 export async function updateActivityLog(
   logId,
   logData
@@ -89,7 +211,6 @@ export async function updateActivityLog(
 }
 
 
-// Delete activity log
 export async function deleteActivityLog(logId) {
   const response = await api.delete(
     `/activity-logs/${logId}`
@@ -99,18 +220,16 @@ export async function deleteActivityLog(logId) {
 }
 
 
-/* ================================
-   DAILY NOTES
-================================ */
+// ========================================
+// DAILY NOTES
+// ========================================
 
-// Get all daily notes
 export async function getDailyNotes() {
   const response = await api.get("/daily-notes");
   return response.data;
 }
 
 
-// Create daily note
 export async function createDailyNote(noteData) {
   const response = await api.post(
     "/daily-notes",
@@ -121,7 +240,6 @@ export async function createDailyNote(noteData) {
 }
 
 
-// Update daily note
 export async function updateDailyNote(
   noteId,
   noteData
@@ -135,7 +253,6 @@ export async function updateDailyNote(
 }
 
 
-// Delete daily note
 export async function deleteDailyNote(noteId) {
   const response = await api.delete(
     `/daily-notes/${noteId}`
@@ -145,11 +262,10 @@ export async function deleteDailyNote(noteId) {
 }
 
 
-/* ================================
-   ANALYTICS
-================================ */
+// ========================================
+// ANALYTICS
+// ========================================
 
-// Dashboard overview statistics
 export async function getOverviewStatistics() {
   const response = await api.get(
     "/analytics/overview"
@@ -159,7 +275,6 @@ export async function getOverviewStatistics() {
 }
 
 
-// Statistics for one activity
 export async function getActivityStatistics(
   activityId
 ) {
@@ -171,7 +286,6 @@ export async function getActivityStatistics(
 }
 
 
-// Weekly statistics for one activity
 export async function getActivityWeeklyStatistics(
   activityId
 ) {
@@ -183,7 +297,6 @@ export async function getActivityWeeklyStatistics(
 }
 
 
-// Monthly statistics for one activity
 export async function getActivityMonthlyStatistics(
   activityId
 ) {
@@ -195,11 +308,10 @@ export async function getActivityMonthlyStatistics(
 }
 
 
-/* ================================
-   TRENDS
-================================ */
+// ========================================
+// TRENDS
+// ========================================
 
-// Daily completion trends
 export async function getDailyTrends() {
   const response = await api.get(
     "/analytics/trends/daily"
@@ -209,7 +321,6 @@ export async function getDailyTrends() {
 }
 
 
-// Weekly completion trends
 export async function getWeeklyTrends() {
   const response = await api.get(
     "/analytics/trends/weekly"
@@ -219,11 +330,10 @@ export async function getWeeklyTrends() {
 }
 
 
-/* ================================
-   CALENDAR
-================================ */
+// ========================================
+// CALENDAR
+// ========================================
 
-// Calendar activity data
 export async function getCalendarData() {
   const response = await api.get(
     "/analytics/calendar"
